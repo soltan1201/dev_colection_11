@@ -1,0 +1,11 @@
+grides coletadas
+https://code.earthengine.google.com/9bfb7ea79ae79978ccef7395aa1b541d
+
+asset_grades_area de pesquisa
+projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_pesquisa_caatinga_cerrado
+asset_grades_cerrado coletas savana
+projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_cerrado
+asset_grades_caatinga coletas savanas 
+projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_caatinga
+
+
