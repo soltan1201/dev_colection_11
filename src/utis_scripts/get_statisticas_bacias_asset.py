@@ -1,37 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-'''
-# SCRIPT DE RE SAMPLING POR BACIA
-# Produzido por Geodatin - Dados e Geoinformacao
-# DISTRIBUIDO COM GPLv2
-'''
-
-import ee 
-import sys
+import ee
 import os
-import json
-from tqdm import tqdm
+import sys
 from pathlib import Path
-import collections
-collections.Callable = collections.abc.Callable
 
 pathparent = str(Path(os.getcwd()).parents[0])
-print("ver >> ", pathparent)
 sys.path.append(pathparent)
-from configure_account_projects_ee import get_current_account, get_project_from_account
+from configure_account_projects_ee import get_current_account
+
 projAccount = get_current_account()
-from gee_tools import *
-print(f"projetos selecionado >>> {projAccount} <<<")
+print(f"Projeto selecionado >>> {projAccount} <<<")
 
 try:
-    ee.Initialize(project= projAccount)
-    print('The Earth Engine package initialized successfully!')
-except ee.EEException as e:
-    print('The Earth Engine package failed to initialize!')
-except:
-    print("Unexpected error:", sys.exc_info()[0])
-    raise
-
+    ee.Initialize(project=projAccount)
+    print('✅ Earth Engine inicializado com sucesso!')
+except Exception as e:
+    print(f"❌ Erro ao inicializar o GEE: {e}")
+    sys.exit()
 
 # =========================================================================
 # PARÂMETROS E ASSETS
@@ -39,82 +23,90 @@ except:
 assetMapbiomas100 = 'projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_integration_v2'
 asset_bacias = 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/bacias_hidrografica_caatinga_49_regions'
 
-# Asset de saída (Ajuste o caminho da pasta onde quer salvar a tabela)
+# Asset de saída
 asset_saida = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/estatisticas_bacias_1985_2024'
 
 classMapB = [3, 4, 5, 9, 12, 13, 15, 18, 19, 20, 21, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 39, 40, 41, 46, 47, 48, 49, 50, 62, 75]
 classNew  = [3, 4, 3, 3, 12, 12, 15, 19, 19, 19, 21, 25, 25, 25, 25, 33, 29, 25, 33, 12, 33, 36, 19, 19, 19, 36, 36, 36,  4, 12, 19, 25]
 
+# Extrai a lista de classes únicas que esperamos no resultado
+classes_unicas = sorted(list(set(classNew)))
+
 ano_inicial = 1985
 ano_final = 2024
 
 # =========================================================================
-# LÓGICA 100% SERVER-SIDE
+# LÓGICA 100% SERVER-SIDE E VETORIZADA
 # =========================================================================
 bacias = ee.FeatureCollection(asset_bacias)
 mapbiomas = ee.Image(assetMapbiomas100)
+
+# A imagem de área se adapta automaticamente à escala solicitada no reduceRegions
 area_img = ee.Image.pixelArea().divide(10000) # Hectares
 
-# Cria uma lista de anos no Lado do Servidor
-anos_lista = ee.List.sequence(ano_inicial, ano_final)
-
-# Função para processar um ano específico
-def processar_ano(ano_ee):
+# 1. Função para criar uma imagem Multi-Banda por ano
+def criar_imagem_anual(ano_ee):
     ano_ee = ee.Number(ano_ee).toInt()
     band_name = ee.String('classification_').cat(ano_ee.format('%d'))
     
-    # Prepara a imagem do ano
-    img_ano = mapbiomas.select([band_name]).rename('class')  # .remap(classMapB, classNew)
-    img_calc = area_img.addBands(img_ano)
+    img_ano = mapbiomas.select([band_name]).remap(classMapB, classNew).rename('class')
     
-    # Reducer em grupo
-    stats = img_calc.reduceRegions(
+    bandas_list = []
+    for c in classes_unicas:
+        banda_classe = img_ano.eq(c).multiply(area_img).rename(f'class_{c}_ha')
+        bandas_list.append(banda_classe)
+        
+    banda_total = img_ano.gt(0).multiply(area_img).rename('total_ha')
+    bandas_list.append(banda_total)
+    
+    return ee.Image.cat(bandas_list).set('year', ano_ee)
+
+anos_lista = ee.List.sequence(ano_inicial, ano_final)
+img_col = ee.ImageCollection(anos_lista.map(criar_imagem_anual))
+
+# 2. Função para extrair estatísticas e calcular porcentagem
+def extrair_estatisticas(img):
+    ano = img.get('year')
+    
+    # =========================================================
+    # OTIMIZAÇÃO AQUI: scale=300 para redução de 99% do esforço
+    # =========================================================
+    stats = img.reduceRegions(
         collection=bacias,
-        reducer=ee.Reducer.sum().group(groupField=1, groupName='class'),
-        scale=300,
-        tileScale=16 
+        reducer=ee.Reducer.sum(),
+        scale=300, # <--- Escala grosseira para cálculo rápido de proporções
+        tileScale=4 # Podemos até reduzir o tileScale já que a escala subiu tanto
     )
     
-    # Função para reformatar a saída de cada bacia e extrair os grupos para colunas planas
-    def formatar_bacia(feat):
-        grupos = ee.List(feat.get('groups'))
+    def calcular_pct(feat):
+        feat = feat.set('year', ano)
+        total_ha = ee.Number(feat.get('total_ha'))
         
-        # Calcula a área total da bacia neste ano
-        area_total = ee.Number(grupos.map(lambda g: ee.Dictionary(g).getNumber('sum')).reduce(ee.Reducer.sum()))
+        total_seguro = ee.Algorithms.If(total_ha.eq(0), 1, total_ha)
         
-        # Função iterativa para transformar a lista de grupos em um único dicionário de colunas
-        def achatar_grupos(g, dict_acumulado):
-            g = ee.Dictionary(g)
-            classe = ee.Number(g.get('class')).format('%d')
-            area = ee.Number(g.get('sum'))
-            pct = area.divide(area_total).multiply(100)
+        for c in classes_unicas:
+            area_ha = ee.Number(feat.get(f'class_{c}_ha'))
+            pct = area_ha.divide(total_seguro).multiply(100)
+            feat = feat.set(f'class_{c}_pct', pct)
             
-            nome_col_area = ee.String('class_').cat(classe).cat('_ha')
-            nome_col_pct = ee.String('class_').cat(classe).cat('_pct')
-            
-            return ee.Dictionary(dict_acumulado).set(nome_col_area, area).set(nome_col_pct, pct)
+        return feat
         
-        # Constrói o dicionário com todas as classes para esta bacia
-        dicionario_classes = ee.Dictionary(grupos.iterate(achatar_grupos, ee.Dictionary()))
-        
-        # Adiciona o ID da bacia e o ano
-        propriedades_finais = dicionario_classes.set('nunivotto4', feat.get('nunivotto4')).set('year', ano_ee)
-        
-        # Retorna uma Feature nula (sem geometria) para criar uma tabela extremamente leve!
-        return ee.Feature(None, propriedades_finais)
-        
-    return stats.map(formatar_bacia)
+    return stats.map(calcular_pct)
 
-# Mapeia a função sobre todos os anos e achata o resultado final
-colecao_estatisticas = ee.FeatureCollection(anos_lista.map(processar_ano)).flatten()
+colecao_final = img_col.map(extrair_estatisticas).flatten()
 
 # =========================================================================
 # EXPORTAÇÃO PARA ASSET (TABLE)
 # =========================================================================
-nome_tarefa = f'Export_Stats_Bacias_{ano_inicial}_{ano_final}'
+nome_tarefa = f'Export_Stats_Bacias_Fast_300m_{ano_inicial}_{ano_final}'
+
+try:
+    ee.data.deleteAsset(asset_saida)
+except:
+    pass
 
 tarefa = ee.batch.Export.table.toAsset(
-    collection=colecao_estatisticas,
+    collection=colecao_final,
     description=nome_tarefa,
     assetId=asset_saida
 )
@@ -122,7 +114,7 @@ tarefa = ee.batch.Export.table.toAsset(
 tarefa.start()
 
 print("\n" + "="*60)
-print(f"🚀 Tarefa '{nome_tarefa}' iniciada com sucesso!")
+print(f"🚀 Tarefa '{nome_tarefa}' iniciada com escala otimizada (300m)!")
 print(f"📂 Destino: {asset_saida}")
-print("Acompanhe o progresso na aba 'Tasks' do Code Editor.")
+print("Acompanhe na aba 'Tasks'.")
 print("="*60)

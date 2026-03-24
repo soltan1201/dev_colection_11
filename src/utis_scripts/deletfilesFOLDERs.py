@@ -27,8 +27,7 @@ def GetPolygonsfromFolder(assetFolder, sufixo, lstBacias= [], lstYear= [], play_
 
     for cc, idAsset in enumerate(getlistPtos): 
         path_ = idAsset.get('id') 
-        name =  path_.split("/")[-1]
-        
+        name =  path_.split("/")[-1]        
         
         if len(lstBacias) > 0 and len(lstYear) > 0:    
             idBacia = name.split('_')[0]
@@ -46,58 +45,23 @@ def GetPolygonsfromFolder(assetFolder, sufixo, lstBacias= [], lstYear= [], play_
         # if str(name).startswith(sufixo): AMOSTRAS/col7/CAATINGA/classificationV
     cc = 0
     sizeFiles = len(lst_path)
-    for npath in lst_path:
+    for npath in lst_path:        
         name = npath.split("/")[-1]
-        print(f"eliminando {cc}/{sizeFiles}:  {name}")
-        print(path_)
-        if play_eliminar:
-            ee.data.deleteAsset(npath) 
+        if len(name) > 23:
+            print(f"eliminando {cc}/{sizeFiles}:  {name}")
+            print(path_)
+            if play_eliminar:
+                ee.data.deleteAsset(npath) 
+                # pass
 
         cc += 1
     
     print(lstBacias)
 
-# asset = {'id': 'projects/nexgenmap/SAMPLES/Caatinga/ROIs'}
-# asset = {'id': 'projects/nexgenmap/SAMPLES/caatinga/ROIs/col6'}
-# asset = {'id': 'projects/nexgenmap/SAMPLES/caatinga/ROIs/col6_norm'}
-# asset = {'id': 'projects/nexgenmap/SAMPLES/caatinga/ROIs/col6_norm_outlier'}
-# asset = {'id': 'projects/nexgenmap/SAMPLES/caatinga/ROIs/col6_outlier'}
-# asset ={'id' :'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/S2/ROIs/coleta2'}
-# asset ={'id' : 'projects/nexgenmap/SAMPLES/Caatinga'}
-# asset = {'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsN245_allBND'}
-# asset = {'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsGradeallBNDNormal'}
-# asset = {'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsv1N245'}
-# asset = {'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/ROIsnotWithLabel'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/S2/ROIs/coleta2red'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsNormN2cluster'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsNormN2manual'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col8/CAATINGA/ROIs/coletaROIsv6N2cluster'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col8/CAATINGA/ROIs/coletaROIsv7N2manual'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_byGrades_info'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_merged_IndAll'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_byGradesAgrWat'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_byGradesIndV2'}  # 
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_byGradesIndExt'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_Merges_info'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_merged_Ind'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_merged_IndAll'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_byGradesIndV3'}
-# asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_merged_IndAllv3'}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsN245red_allBND"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsN2clusterNN"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsN5allBND"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsN2cluster"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/cROIsN2manualNN"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsN2man6bnd"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/coletaROIsN2manual"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/roisGradesgroupBuf"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/roisGradesgroupedBuf"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/roisJoinedBaGrNN"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/roisJoinsbyBaciaNN"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/roisredDJoinsbyBaciaNN"}
-# asset = {'id': "projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/ROIs/ROIs_cleaned_downsamplesv4C"}
-asset = {'id': 'projects/nexgenmap/MapBiomas2/LANDSAT/DEGRADACAO/ROIsSoilEmbedding'}
-lstbacias = []  # 7764
+
+asset ={'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_byBasinInd'}
+
+lstbacias = ['7422', '7544', '7443']  # 7764
 lst_years = []
 eliminar_files = False
 GetPolygonsfromFolder(asset, '', lstBacias= lstbacias, lstYear= lst_years, play_eliminar= eliminar_files)  # 

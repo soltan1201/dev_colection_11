@@ -19677,3 +19677,24 @@ collection-10.1-cover-fragmentid-city-233065-2016-1  |  READY  |  2SADNJXKHMOTO3
 collection-10.1-cover-fragmentid-city-233064-2016-1  |  READY  |  AGF7V3BZBQIJBHIKTFUCWWPI
 collection-10.1-cover-fragmentid-city-1064-2016-1  |  READY  |  NL72WL6R52VMAOMICDBNG6ND
 collection-10.1-cover-fragmentid-city-1063-2016-1  |  READY  |  PWDNPBRELFTB6UXMOYHKNN73
+Conta de: superconta
+Ingest image: "projects/mapbiomas-remap-c11/assets/COLECAO_11/PIVOT/PIVOT_2025"  |  COMPLETED  |  JJSDA67MQPCIZYZWBI2XXLGY
+grid_landsat_classes_2024_peak_veg_225063  |  CANCELLED  |  3P2SDNZDM42VFOSELTV7G2AC
+grid_landsat_classes_2024_peak_veg_226063  |  CANCELLED  |  SNZKC6E3PRDD7LA7KYOQO3BH
+grid_landsat_classes_2024_peak_veg_227063  |  CANCELLED  |  7Y7RSVW6YOV2FC2RGXMYDMDL
+grid_landsat_classes_2024_peak_veg_228063  |  CANCELLED  |  RALVT26K33SU2NULEM55FG2R
+grid_landsat_classes_2024_peak_veg_228062  |  CANCELLED  |  FS26SZMRWN7AW4MKQCARE6BZ
+Conta de: solkanCengine
+tfrecord_217_73_2026_01_regiao_4_part_007  |  READY  |  3ZMBWTHIS575MH63JGQUNFW3
+tfrecord_217_73_2026_01_regiao_4_part_006  |  READY  |  VBDD6YBXXFSQ7NUPGWMBKTW4
+tfrecord_217_73_2026_01_regiao_4_part_005  |  READY  |  FDB4LKAHISMUC7SZWBONV2RZ
+tfrecord_217_73_2026_01_regiao_4_part_004  |  READY  |  N3M5PM6RO4NOGNLGDQXPSZQL
+tfrecord_217_73_2026_01_regiao_4_part_003  |  READY  |  I34OSAT4XUMQGT25K5PPYM7Y
+tfrecord_217_73_2026_01_regiao_4_part_002  |  READY  |  2SBR7CZN7LSBYMVVVXF72OV6
+Conta de: superconta
+Ingest image: "projects/mapbiomas-remap-c11/assets/COLECAO_11/PIVOT/PIVOT_2025"  |  COMPLETED  |  JJSDA67MQPCIZYZWBI2XXLGY
+grid_landsat_classes_2024_peak_veg_225063  |  CANCELLED  |  3P2SDNZDM42VFOSELTV7G2AC
+grid_landsat_classes_2024_peak_veg_226063  |  CANCELLED  |  SNZKC6E3PRDD7LA7KYOQO3BH
+grid_landsat_classes_2024_peak_veg_227063  |  CANCELLED  |  7Y7RSVW6YOV2FC2RGXMYDMDL
+grid_landsat_classes_2024_peak_veg_228063  |  CANCELLED  |  RALVT26K33SU2NULEM55FG2R
+grid_landsat_classes_2024_peak_veg_228062  |  CANCELLED  |  FS26SZMRWN7AW4MKQCARE6BZ

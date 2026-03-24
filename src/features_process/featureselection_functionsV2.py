@@ -19,22 +19,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from multiprocessing import Pool
 
-# def plot_selectKBest(XValues, sscore):
-#     X_indices = np.arange(XValues.shape[-1])
-#     plt.figure(1)
-#     plt.clf()
-#     plt.bar(X_indices - 0.05, sscore, width=0.2)
-#     plt.title("Feature univariate score")
-#     plt.xlabel("Feature number")
-#     plt.ylabel(r"Univariate score ($-Log(p_{value})$)")
-#     plt.show()
 
-# def Univariate_feature_selectionF_test (X_train, y_train):
-#     selector = SelectKBest(f_classif, k=4)
-#     selector.fit(X_train, y_train)
-#     scores = -np.log10(selector.pvalues_)
-#     scores /= scores.max()
-#     plot_selectKBest(X_train, scores)
 colunas =  [
     'afvi_median', 'afvi_median_dry', 'afvi_median_wet', 'avi_median', 'avi_median_dry', 
     'avi_median_wet', 'awei_median', 'awei_median_dry', 'awei_median_wet', 'blue_median', 
