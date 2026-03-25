@@ -46,7 +46,7 @@ class ClassMosaic_indexs_Spectral(object):
         
         'lsClasse': [  4,   3,  12,  15,  19,  21,  25,  29, 33,   36],
         'lsPtos':   [300, 500, 300, 350, 150, 100, 150, 100, 200, 150],
-        "anoIntInit": 2022, # ATUALIZADO: 2022
+        "anoIntInit": 2021, # ATUALIZADO: 2022
         "anoIntFin": 2024,  # ATUALIZADO: 2025
     }
 
@@ -300,11 +300,11 @@ def ask_byGrid_saved(dict_asset):
 # =========================================================================
 
 # asset_grades_area de pesquisa
-asset_pesquisa = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_pesquisa_caatinga_cerrado'
+asset_pesquisa = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_pesquisa_caatinga_cerrado_v2'
 # asset_grades_cerrado coletas savana
-asset_coleta_cerrado = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_cerrado'
+asset_coleta_cerrado = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_cerrado_v2'
 # asset_grades_caatinga coletas savanas 
-asset_coleta_caatinga = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_caatinga'
+asset_coleta_caatinga = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_caatinga_v2'
 
 # ATRIBUIÇÃO DOS VALORES DE REGIÃO DIRETAMENTE NA COLEÇÃO ANTES DO MERGE
 # Cerrado = 1 | Caatinga = 2
@@ -326,11 +326,10 @@ if searchFeatSaved:
     askingbySizeFC = False
 else:
     lstFeatAsset = []
-
 print("size of grade geral >> ", len(lstIdCode))
 
-inicP = 44
-endP = 150 
+inicP = 0
+endP = 800 
 for cc, item in enumerate(lstIdCode[inicP:endP]):
     print(f"# {cc + 1 + inicP} loading geometry grade {item}")   
     if item not in lstFeatAsset:

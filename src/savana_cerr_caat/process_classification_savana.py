@@ -34,20 +34,22 @@ class Classificador_GTB_Caatinga(object):
         'asset_mosaic_sentinelp2': 'projects/nexgenmap/MapBiomas2/SENTINEL/mosaics-3',
         'asset_mosaic_sentinelp1': 'projects/mapbiomas-mosaics/assets/SENTINEL/BRAZIL/mosaics-3',
         'asset_embedding': "GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL",
-        'asset_bacias_geom': 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/bacias_hidrografica_caatinga_49_regions',
-        
+        # asset_grades_area de pesquisa
+        'asset_grids_pesquisa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_pesquisa_caatinga_cerrado',        
         # ASSET DA SUA FEATURE COLLECTION ÚNICA COM AS AMOSTRAS:
-        'asset_amostras_treino': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_consolidado_cerr_caat_embeddin_ALL',
-        
+        'asset_amostras_treino': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_grades_cerr_caat_embeddins',        
         # PASTA ONDE OS MAPAS CLASSIFICADOS SERÃO SALVOS:
-        'asset_output_maps': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classificacao_3Classes', 
-        
+        'asset_output_maps': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_Savana',         
         "anoIntInit": 2022, 
-        "anoIntFin": 2024,  
-        
+        "anoIntFin": 2024,          
         # Parâmetros do Gradient Tree Boost
-        'gtb_trees': 50,
-        'gtb_learning_rate': 0.1
+        'pmtGTB': {
+            'numberOfTrees': 125, 
+            'shrinkage': 0.1,         
+            'samplingRate': 0.65, 
+            'loss': "LeastSquares",#'Huber',#'LeastAbsoluteDeviation', 
+            'seed': 0
+        },
     }
 
     allbands = [
@@ -64,6 +66,14 @@ class Classificador_GTB_Caatinga(object):
         'rvi_median_wet', 'pri_median_wet', 'avi_median_dry', 'gvmi_median_wet', 
         'gemi_median_dry', 'bsi_median_wet', 'gcvi_median_wet'
     ] 
+    feat_import = [
+        'ratio_median_dry', 'pri_median_dry', 'avi_median','nbr_median', 'rvi_median', 
+        'gcvi_median_dry', 'cvi_median_dry', 'osavi_median', 'evi_median', 
+        'osavi_median_dry', 'nbr_median_dry', 'gli_median_dry', 'gvmi_median_dry', 
+        'rvi_median_dry', 'osavi_median_stdDev', 'pri_median', 'bsi_median', 
+        'evi_median_dry', 'bsi_median_dry', 'avi_median_dry',
+        'gemi_median_dry'
+    ] 
 
     def __init__(self):
         self.imgMosaic = ee.ImageCollection(self.options['asset_mosaic_sentinelp1']).merge(
@@ -71,9 +81,9 @@ class Classificador_GTB_Caatinga(object):
                                       
         print("==================================================")
         self.lst_year = list(range(self.options['anoIntInit'], self.options['anoIntFin'] + 1))
-        
+        self.lst_year = [2024]
         self.mosaico_embedding = ee.ImageCollection(self.options['asset_embedding'])
-        self.bacias_geom = ee.FeatureCollection(self.options['asset_bacias_geom'])
+        self.areas_treino_geom = ee.FeatureCollection(self.options['asset_grids_pesquisa'])
 
     # =========================================================================
     # BLOCO DE CONSTRUÇÃO DA IMAGEM (Idêntico ao da extração para bater perfeitamente)
@@ -92,8 +102,10 @@ class Classificador_GTB_Caatinga(object):
         lstFractionsSuf = [frac + sufixo for frac in lstFractions]
         
         endmembers = [            
-            [0.05, 0.09, 0.04, 0.61, 0.30, 0.10], [0.14, 0.17, 0.22, 0.30, 0.55, 0.30], 
-            [0.20, 0.30, 0.34, 0.58, 0.60, 0.58], [0.0 , 0.0,  0.0 , 0.0 , 0.0 , 0.0 ], 
+            [0.05, 0.09, 0.04, 0.61, 0.30, 0.10],
+            [0.14, 0.17, 0.22, 0.30, 0.55, 0.30], 
+            [0.20, 0.30, 0.34, 0.58, 0.60, 0.58], 
+            [0.0 , 0.0,  0.0 , 0.0 , 0.0 , 0.0 ], 
             [0.90, 0.96, 0.80, 0.78, 0.72, 0.65]  
         ]
         fractions = ee.Image(IMAGE).select(lstBandsSuf).unmix(endmembers=endmembers, sumToOne=True, nonNegative=True).float()
@@ -168,66 +180,61 @@ class Classificador_GTB_Caatinga(object):
         remapeia para 3 classes e treina o GTB.
         """
         print(f"🌲 Treinando modelo GTB para o ano {ano}...")
-        fc_amostras = ee.FeatureCollection(self.options['asset_amostras_treino'])
-        
         # Filtra os pontos de treinamento do ano específico
-        amostras_ano = fc_amostras.filter(ee.Filter.eq('year', ano))
-        
-        # DEFINIÇÃO DAS 3 MACRO-CLASSES:
-        # 1: Vegetação Nativa (3, 4, 12)
-        # 2: Agropecuária / Antrópico (15, 18, 19, 21)
-        # 3: Outros / Solo / Água / Não-vegetado (22, 25, 29, 33, 36)
-        classes_originais = [3, 4, 12, 15, 18, 19, 21, 22, 25, 29, 33, 36]
-        classes_novas     = [1, 1,  1,  2,  2,  2,  2,  3,  3,  3,  3,  3]
-        
-        # Cria uma nova coluna 'macro_class' com os valores 1, 2 e 3
-        amostras_remapeadas = amostras_ano.remap(classes_originais, classes_novas, 'class', 'macro_class')
-        
+        fc_amostras_yy = (ee.FeatureCollection(self.options['asset_amostras_treino'])
+                        .filter(ee.Filter.eq('year', ano)))
+
+        # print("all bands ")
+        # print(fc_amostras_yy.first().propertyNames().getInfo())
+        # sys.exit()
         # Monta a lista de features (Bandas selecionadas + Embedding)
-        features_para_treino = self.allbands + [f'embedding_{i}' for i in range(64)]
+        # Gera de A00 até A63 automaticamente em uma linha
+        band_embedding = [f"A{i:02d}" for i in range(64)]
+        features_para_treino = self.feat_import + band_embedding
         
         # Instancia e treina o Gradient Tree Boost
-        classificador = ee.Classifier.smileGradientTreeBoost(
-            numberOfTrees=self.options['gtb_trees'],
-            shrinkage=self.options['gtb_learning_rate'],
-            seed=42
-        ).train(
-            features=amostras_remapeadas,
-            classProperty='macro_class',
-            inputProperties=features_para_treino
-        )
+        classificador = (ee.Classifier.smileGradientTreeBoost(**self.options['pmtGTB'])
+                                    .train(
+                                        features= fc_amostras_yy,
+                                        classProperty= 'class',
+                                        inputProperties= features_para_treino
+                                    ))
         
         return classificador
 
-    def classificar_bacia(self, bacia_id, ano, classificador):
+    def classificar_x_grade(self, grid_id, ano, classificador):
         """
         Gera a imagem da bacia, classifica com o modelo treinado e exporta.
         """
         # Pega a geometria da bacia para recortar o mapa
-        geometria_bacia = self.bacias_geom.filter(ee.Filter.eq('nunivotto4', bacia_id)).geometry()
+        geometria_grid = self.areas_treino_geom.filter(ee.Filter.eq('indice', grid_id)).geometry()
         date_inic = ee.Date.fromYMD(ano, 1, 1)
 
         # 1. Reconstrói o mosaico e índices espectrais
         imgColfiltered = (self.imgMosaic
                             .filter(ee.Filter.eq('year', ano))
-                            .filterBounds(geometria_bacia))
+                            .filterBounds(geometria_grid))
         
         img_base = imgColfiltered.mosaic()
         img_indices = self.CalculateIndice_otimizado(img_base).select(self.allbands)
 
         # 2. Adiciona as Bandas Embedding
         embedding_years = (self.mosaico_embedding
-                                .filterBounds(geometria_bacia)
-                                .filterDate(date_inic, date_inic.advance(1, 'year')))
-        
-        img_embed = ee.Image(ee.Algorithms.If(
-            embedding_years.size().gt(0),
-            embedding_years.mosaic(),
-            ee.Image.constant([0]*64).rename([f'embedding_{i}' for i in range(64)]).updateMask(0)
-        ))
+                                .filterBounds(geometria_grid)
+                                .filterDate(date_inic, date_inic.advance(1, 'year'))
+                                .mosaic()
+                        )
+        # Nomes esperados pelo modelo (A00 a A63)
+        nomes_esperados = [f"A{i:02d}" for i in range(64)]
+
+        # img_embed = ee.Image(ee.Algorithms.If(
+        #     embedding_years.size().gt(0),
+        #     embedding_years.mosaic(),
+        #     ee.Image.constant([0]*64).rename(nomes_esperados).updateMask(0)
+        # ))
 
         # 3. Junta as bandas e aplica o classificador GTB
-        imagem_pronta = img_indices.addBands(img_embed)
+        imagem_pronta = img_indices.addBands(embedding_years)
         
         # O resultado será uma imagem com uma banda chamada 'classification' contendo 1, 2 ou 3
         mapa_classificado = imagem_pronta.classify(classificador).rename(f'classification_{ano}')
@@ -235,15 +242,22 @@ class Classificador_GTB_Caatinga(object):
         # Converte para Byte (Economiza 90% do espaço de armazenamento no GEE)
         mapa_classificado = mapa_classificado.toByte()
 
+        mapa_classificado = mapa_classificado.set(
+                                    'year', ano,
+                                    'modelo', 'GTB',
+                                    'source', 'sentinel_embedding',
+                                    'system:footprint', geometria_grid
+                                )
+
         # 4. Agendamento da Exportação
-        nome_arquivo = f"Classificacao_{bacia_id}_{ano}_3Classes"
+        nome_arquivo = f"Classificacao_{grid_id}_{ano}_3Classes"
         asset_id_out = f"{self.options['asset_output_maps']}/{nome_arquivo}"
 
         optExp = {
             'image': mapa_classificado,
             'description': nome_arquivo,
             'assetId': asset_id_out,
-            'region': geometria_bacia,
+            'region': geometria_grid,
             'scale': 10,  # Resolução do Sentinel
             'maxPixels': 1e13,
             # Importante: Como são classes categóricas, usamos 'mode' nas pirâmides de visualização
@@ -261,16 +275,11 @@ class Classificador_GTB_Caatinga(object):
 # FLUXO DE EXECUÇÃO DA CLASSIFICAÇÃO
 # =========================================================================
 
-nameBacias = [
-    '7411', '7754', '7691', '7581', '7625', '7584', '751', '7614', 
-    '752', '7616', '745', '7424', '773', '7612', '7613', 
-    '7618', '7561', '755', '7617', '7564', '761111', '761112', 
-    '7741', '7422', '76116', '7761', '7671', '7615',  
-    '7764', '757', '771', '7712', '766', '7746', '753', '764', 
-    '7721', '772', '7619', '765', '7438', '7591', '7592', '7622',
-    '746', '7541', '7443', '7544', '763'    
-]
+# asset_grades_area de pesquisa
+asset_pesquisa = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_pesquisa_caatinga_cerrado'
+grades_coleta = ee.FeatureCollection(asset_pesquisa)
 
+lstIdCode = grades_coleta.reduceColumns(ee.Reducer.toList(), ['indice']).get('list').getInfo()
 classificador_app = Classificador_GTB_Caatinga()
 
 # Itera sobre cada ano (treina 1 modelo por ano para garantir precisão temporal)
@@ -281,8 +290,9 @@ for ano in classificador_app.lst_year:
     modelo_gtb_ano = classificador_app.treinar_modelo_anual(ano)
     
     # 2. Aplica o modelo já treinado sobre cada bacia e exporta
-    for cc, bacia in enumerate(nameBacias):
-        print(f"[{cc+1}/{len(nameBacias)}] Classificando bacia {bacia}...")
-        classificador_app.classificar_bacia(bacia, ano, modelo_gtb_ano)
+    for cc, ngrid in enumerate(lstIdCode[2:]):
+        print(f"[{cc+1}/{len(lstIdCode)}] Classificando bacia {ngrid}...")
+        classificador_app.classificar_x_grade(ngrid, ano, modelo_gtb_ano)
+        # sys.exit()
 
 print("\n🚀 Todas as tarefas de classificação foram enfileiradas!")

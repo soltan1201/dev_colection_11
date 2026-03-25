@@ -65,7 +65,8 @@ def Get_Remove_Array_from_ImgCol(asset_imgcol, vers= 0, janela= 0, lstBacias= []
 # asset= 'projects/mapbiomas-brazil/assets/WATER/COLLECTION-4/classification-monthly'
 # asset= 'projects/nexgenmap/MapBiomas2/LANDSAT/DEGRADACAO/LAYER_SOIL_EMBED'
 # asset= 'projects/nexgenmap/MapBiomas2/LANDSAT/DEGRADACAO/mosaics-harmonico'
-asset = 'projects/nexgenmap/SAD_MapBiomas/Caatinga/ndfia_min'
+# asset = 'projects/nexgenmap/SAD_MapBiomas/Caatinga/ndfia_min'
+asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_Savana'
 lsBacias = [
     '7754', '7691', '7581', '7625', '7584',  '7614', '751',
     '752', '7616', '745', '7424', '773', '7612', '7613', 

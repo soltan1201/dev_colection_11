@@ -41,13 +41,13 @@ def GetPolygonsfromFolder(assetFolder, sufixo, lstBacias= [], lstYear= [], play_
             if sufixo in str(name): 
                 lst_path.append(path_)        
      
-        # print(name)
+            # print(name)
         # if str(name).startswith(sufixo): AMOSTRAS/col7/CAATINGA/classificationV
     cc = 0
     sizeFiles = len(lst_path)
     for npath in lst_path:        
         name = npath.split("/")[-1]
-        if len(name) > 23:
+        if len(name) > 0:
             print(f"eliminando {cc}/{sizeFiles}:  {name}")
             print(path_)
             if play_eliminar:
@@ -59,9 +59,10 @@ def GetPolygonsfromFolder(assetFolder, sufixo, lstBacias= [], lstYear= [], play_
     print(lstBacias)
 
 
-asset ={'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_byBasinInd'}
+# asset ={'id' : 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_byBasinInd'}
+asset = {'id': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_grades_cerr_caat_embeddin'}
 
-lstbacias = ['7422', '7544', '7443']  # 7764
+lstbacias = []  # 7764
 lst_years = []
 eliminar_files = False
 GetPolygonsfromFolder(asset, '', lstBacias= lstbacias, lstYear= lst_years, play_eliminar= eliminar_files)  # 
