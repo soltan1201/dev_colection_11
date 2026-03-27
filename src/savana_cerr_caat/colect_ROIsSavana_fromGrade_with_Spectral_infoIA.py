@@ -65,6 +65,8 @@ class ClassMosaic_indexs_Spectral(object):
         'gemi_median_dry', 'bsi_median_wet', 'gcvi_median_wet'
     ] # system:index removido propositalmente para evitar quebras
 
+    
+
     def __init__(self):
         
         # Carrega a coleção do Sentinel, mas NÃO seleciona as bandas aqui.

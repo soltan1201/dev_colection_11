@@ -19705,3 +19705,10 @@ grid_landsat_classes_2024_peak_veg_out-set_150-175  |  RUNNING  |  R55ESGPXG7FFO
 grid_landsat_classes_2024_peak_veg_out-set_125-150  |  COMPLETED  |  PTSI4HVWZRQAU74FAG3YVYW6
 grid_landsat_classes_2024_peak_veg_out-set_100-125  |  COMPLETED  |  RJJK6L2V2JYWMDYHOJSWFKUA
 grid_landsat_classes_2024_peak_veg_nov-mar_200-250  |  COMPLETED  |  ZSKFRHQNTPWNBOMXVJM6PLKX
+Conta de: superconta
+classification-ft-v5-defor  |  COMPLETED  |  6772SMK3JUO7SGXAP4NL75ID
+classification-ft-v5  |  COMPLETED  |  26TCEQHLTIDL2BSDEH6BD5RT
+grid_landsat_classes_2024_peak_veg_nov-mar_200-250  |  COMPLETED  |  ZUJLSLQXQQ7TEHOA7PAWUK35
+grid_landsat_classes_2024_peak_veg_nov-mar_150-200  |  FAILED  |  HBDZH3I7ZTBONZ3A57Y646YK
+grid_landsat_classes_2024_peak_veg_nov-mar_100-150  |  FAILED  |  WI6EZTYPJ44VR4XYRJB4K42D
+grid_landsat_classes_2024_peak_veg_nov-mar_50-100  |  COMPLETED  |  2L5NHU47GIVFBMJPEUM6ZJOM

@@ -77,6 +77,6 @@ lsBacias = [
     '763', '7591', '7592', '7622', '746'
 ]
 
-eliminar_files = False
+eliminar_files = True
 # lstyear=[2025], 
 Get_Remove_Array_from_ImgCol(asset, play_eliminar= eliminar_files)  
