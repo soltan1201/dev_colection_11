@@ -83,7 +83,7 @@ class Classificador_GTB_Caatinga(object):
                                       
         print("==================================================")
         self.lst_year = list(range(self.options['anoIntInit'], self.options['anoIntFin'] + 1))
-        self.lst_year = [2024]
+        self.lst_year = [2022, 2023] # , 2024
         self.mosaico_embedding = ee.ImageCollection(self.options['asset_embedding'])
         self.areas_treino_geom = ee.FeatureCollection(self.options['asset_grids_pesquisa'])
         self.imgMapbiomas = ee.Image(self.options['assetMapbiomas100'])
@@ -302,16 +302,16 @@ lstIdCode = grades_coleta.reduceColumns(ee.Reducer.toList(), ['indice']).get('li
 classificador_app = Classificador_GTB_Caatinga()
 
 # Itera sobre cada ano (treina 1 modelo por ano para garantir precisão temporal)
-for ano in classificador_app.lst_year:
+for ano in classificador_app.lst_year[1:]:
     print(f"\n{'='*50}\nIniciando Ciclo para o ANO: {ano}\n{'='*50}")
     
     # 1. Treina o Modelo GTB para este ano usando TODAS as amostras consolidadas
     modelo_gtb_ano = classificador_app.treinar_modelo_anual(ano)
     
     # 2. Aplica o modelo já treinado sobre cada bacia e exporta
-    for cc, ngrid in enumerate(lstIdCode[10:]):
+    for cc, ngrid in enumerate(lstIdCode[613:]):
         print(f"[{cc+1}/{len(lstIdCode)}] Classificando bacia {ngrid}...")
         classificador_app.classificar_x_grade(ngrid, ano, modelo_gtb_ano)
-    sys.exit()
+    # sys.exit()
 
 print("\n🚀 Todas as tarefas de classificação foram enfileiradas!")

@@ -57,8 +57,7 @@ class ClassMosaic_indexs_Spectral(object):
         'asset_grad': 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/basegrade30KMCaatinga',
         'asset_collectionId': 'LANDSAT/COMPOSITES/C02/T1_L2_32DAY',
         'asset_mosaic': 'projects/nexgenmap/MapBiomas2/LANDSAT/BRAZIL/mosaics-2',
-        # 'asset_joinsGrBa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_resample_featmaps',
-        'asset_joinsGrBa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesCCred',
+        'asset_joinsGrBa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_resample_featmaps',
         # 'asset_joinsGrBaMB': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_resample_featmaps',
         'assetOutMB': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/Classify_fromMMBV2',
         'assetOut': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/ClassifyV2YX',
@@ -428,18 +427,10 @@ class ClassMosaic_indexs_Spectral(object):
                                 .select(self.lstBandMB)
                     )
 
-
-        lst_feat_select = [
-            'awei_median_mean', 'ndti_median_dry', 'awei_median_stdDev', 'brba_median_wet', 'ndfia_median_stdDev', 'bsi_median_mean', 
-            'ndfia_median_mean', 'ndti_median_wet', 'slope', 'npv_median_dry', 'wetness_median', 'gcvi_median_mean', 'soil_median_wet', 
-            'awei_median', 'soil_median', 'awei_median_wet', 'npv_median_wet', 'swir2_median', 'brba_median_dry', 'brightness_median', 
-            'ui_median_mean', 'ui_median_stdDev', 'avi_median_stdDev', 'avi_median_mean', 'gli_median_dry', 'spri_median_dry', 
-            'spri_median_wet', 'red_median_wet', 'ndti_median', 'npv_median', 'awei_median_dry', 'green_median_dry', 'shade_median_dry', 
-            'green_median_wet', 'osavi_median_mean', 'pri_median_dry', 'pri_median', 'swir2_median_dry', 'mbi_median_dry', 'swir1_median_wet', 
-            'shape_median_dry', 'osavi_median_stdDev', 'bsi_median_stdDev', 'gcvi_median_stdDev', 'ndfia_median_dry', 'soil_median_dry', 
-            'wetness_median_wet', 'brightness_median_dry', 'swir2_median_wet', 'red_median_dry'
-        ]
-
+        featMaps = (ee.ImageCollection('projects/solvedltda/assets/MB11_FM/1990')
+                      .filterBounds(baciabuffer)
+                      .mosaic())
+        lst_feat_select = 
         # # lista de classe por bacia 
         # lstClassesUn = self.options['dict_classChangeBa'][self.tesauroBasin[_nbacia]]
         # print(f" ==== lista de classes ness bacia na bacia < {_nbacia} >  ====")
@@ -464,36 +455,35 @@ class ClassMosaic_indexs_Spectral(object):
         # sys.exit()
         # imglsClasxanos = ee.Image().byte()
 
-        for nyear in self.lst_year[:]:  # 
+        for nyear in [1990]:  # self.lst_year[-1:]
             bandActiva = 'classification_' + str(nyear)       
             print( "banda activa: " + bandActiva)   
 
-            nomec = f"{_nbacia}_{nyear}_GTB_col11_BND_fm-v_{self.options['version']}"
+            nomec = f"{_nbacia}_{nyear}_GTB_col10_BND_fm-v_{self.options['version']}"
             if 'BACIA_' + nomec not in self.lstIDassetS:                
 
                 #cria o classificador com as especificacoes definidas acima 
                 limitlsb = 35
                 # print( bandas_fromFS[f"{_nbacia}_{nyear}"])            
                 # lstbandas_import = bandas_fromFS[f"{_nbacia}_{nyear}"]['features']
-                # if nyear < 2025:
-                #     lstbandas_import = bandas_fromFS[f"{_nbacia}_{nyear}"]['features']
-                # else:
-                #     lstbandas_import = bandas_fromFS[f"{_nbacia}_{2024}"]['features']
+                if nyear < 2025:
+                    lstbandas_import = bandas_fromFS[f"{_nbacia}_{nyear}"]['features']
+                else:
+                    lstbandas_import = bandas_fromFS[f"{_nbacia}_{2024}"]['features']
                 # obandas_imports = [bnd for bnd in lstbandas_import if  not in bnd]
                 # obandas_imports = obandas_imports[:limitlsb]
                 # outrasBandas = ['stdDev', 'solpe']
                 
-                # bandas_imports = lstbandas_import[:limitlsb]  + ['slope']
-                bandas_imports = lst_feat_select[:limitlsb]
+                bandas_imports = lstbandas_import[:limitlsb]  + ['slope']
                 print(f" numero de bandas selecionadas {len(bandas_imports)} ") 
-                print(bandas_imports)
+                # print(bandas_imports)
                 
                 # sys.exit()
-                # nameFeatROIs = rois_fromBasin_7411_1985
+                # nameFeatROIs = samples_7424_1990
                 if nyear < 2026:
-                    nameFeatROIs =  f"rois_fromBasin_{_nbacia}_{nyear}"  
+                    nameFeatROIs =  f"samples_{_nbacia}_{nyear}"  
                 else:
-                    nameFeatROIs =  f"rois_fromBasin_{_nbacia}_{2024}"                
+                    nameFeatROIs =  f"samples_{_nbacia}_{2024}"                
 
                 print("loading Rois with name =>>>>>> ", nameFeatROIs)
 
@@ -505,14 +495,14 @@ class ClassMosaic_indexs_Spectral(object):
                     ROIs_toTrain = ee.FeatureCollection(dir_asset_rois) 
                     # print(ROIs_toTrain.size().getInfo())
                     # print(ROIs_toTrain.aggregate_histogram('class').getInfo())
-                    # bandExtra = [nband + '_median_wet' for nband in self.options['bnd_L']]  
+                    bandExtra = [nband + '_median_wet' for nband in self.options['bnd_L']]  
                     # ROIs_toTrain = ROIs_toTrain.filter(ee.Filter.neq('class', 21.0))
-                    # ROIs_toTrain = ROIs_toTrain.filter(ee.Filter.notNull(bandExtra))                
-                    # ROIs_toTrain = ROIs_toTrain.map(lambda f: f.set('class', ee.Number.parse(f.get('class')).toFloat().toInt8()))
-                    # print(ROIs_toTrain.size().getInfo())
+                    ROIs_toTrain = ROIs_toTrain.filter(ee.Filter.notNull(bandExtra))                
+                    ROIs_toTrain = ROIs_toTrain.map(lambda f: f.set('class', ee.Number.parse(f.get('class')).toFloat().toInt8()))
+                    print(ROIs_toTrain.size().getInfo())
                     # print(ROIs_toTrain.aggregate_histogram('class').getInfo())
                     # otherROIsneighbor = self.get_ROIs_from_neighbor(lstSoViz, asset_rois, nyear)
-                    # ROIs_toTrain =  self.down_samples_ROIs(ROIs_toTrain)  #.merge(otherROIsneighbor)
+                    ROIs_toTrain =  self.down_samples_ROIs(ROIs_toTrain)  #.merge(otherROIsneighbor)
                     print(" saindo do processo downsamples ")                    
                     # print(ROIs_toTrain.aggregate_histogram('class').getInfo())
                     # lstBandasROIS = ROIs_toTrain.first().propertyNames().getInfo()
@@ -520,7 +510,7 @@ class ClassMosaic_indexs_Spectral(object):
                     # print(len(bandas_imports))
                     # tmpBandasImp = [col for col in bandas_imports if col in lstBandasROIS]
                     # print(" >> ", len(bandas_imports))
-                    # print(" fez down samples nos ROIs  ")
+                    print(" fez down samples nos ROIs  ")
                     # sys.exit()
                     # cria o mosaico a partir do mosaico total, cortando pelo poligono da bacia 
                     date_inic = ee.Date.fromYMD(int(nyear),1,1)      
@@ -555,7 +545,7 @@ class ClassMosaic_indexs_Spectral(object):
                     mosaicProcess = ee.Image(mosaicProcess)
                     print("-----------------------------------------")
                     # print(f" we have {mosaicProcess.bandNames().getInfo()} images ")
-                    
+                    mosaicProcess = mosaicProcess.addBands(featMaps)
                     print("calculou todas as bandas necesarias ")
                     
                     # sys.exit()
@@ -585,7 +575,7 @@ class ClassMosaic_indexs_Spectral(object):
                     #     if col not in bandas_imports:
                     #         lstNN.append(col)
                     classifierGTB = ee.Classifier.smileGradientTreeBoost(**pmtroClass).train(
-                                                        ROIs_toTrain, 'class', bandas_imports)              
+                                                        ROIs_toTrain, 'class', self.all_bands)              
                     classifiedGTB = mosaicProcess.classify(classifierGTB, bandActiva)        
                     # print("classificando!!!! ")
                     # sys.exit()
@@ -602,7 +592,7 @@ class ClassMosaic_indexs_Spectral(object):
                         'version': self.options['version'],
                         'biome': self.options['bioma'],
                         'classifier': 'GTB',
-                        'collection': '11.0',
+                        'collection': '10.0',
                         'sensor': 'Landsat',
                         'source': 'geodatin',  
                         'year': nyear, 
@@ -866,7 +856,7 @@ asset_exportar = param['assetOut']
 
 
 # sys.exit()
-for _nbacia in nameBacias[25:]:
+for _nbacia in nameBacias[:]:
     if knowMapSaved:
         try:
             nameMap = 'BACIA_' + _nbacia + '_' + 'GTB_col10-v' + str(param['version'])
