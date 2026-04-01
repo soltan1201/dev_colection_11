@@ -17,7 +17,7 @@ import sys
 import math
 import pandas as pd
 from pathlib import Path
-import arqParametros as arqParams 
+import arqParametros_class as arqParams 
 import collections
 collections.Callable = collections.abc.Callable
 
@@ -79,9 +79,8 @@ class ClassMosaic_indexs_Spectral(object):
     }
 
     all_bands = [
-        'afvi_median_wet', 'avi_median', 'avi_median_wet', 'awei_median', 'awei_median_dry', 'awei_median_mean', 
-        'awei_median_wet', 'blue_median_wet', 'brba_median_wet',
-        # 'b10', 'b15', 'b19', 'b2', 'b20', 'b24', 'b28', 'b3', 'b4', 'b7', 
+        'afvi_median_wet', 'avi_median', 'avi_median_wet', 'awei_median', 'awei_median_dry', 
+        'awei_median_wet', 'blue_median_wet', 'brba_median_wet', 'awei_median_mean', 
         'brightness_median', 'brightness_median_dry', 'brightness_median_wet',
         'co2flux_median_wet', 'dswi5_median_wet', 'evi_median_wet', 'gcvi_median_wet', 
         'gndvi_median_wet', 'green_median', 'green_median_dry', 'green_median_wet', 'gvmi_median_wet', 
@@ -199,42 +198,11 @@ class ClassMosaic_indexs_Spectral(object):
     # Ratio Vegetation Index # Global Environment Monitoring Index GEMI 
     def agregateBandswithSpectralIndex(self, img): # lista_bands
         sufixos = ['_median', '_median_wet', '_median_dry']
-        formulas_base = {
-            'ratio': "b('nir{s}') / b('red{s}')",
-            'rvi': "b('red{s}') / b('nir{s}')",
-            'ndvi': "(b('nir{s}') - b('red{s}')) / (b('nir{s}') + b('red{s}'))",
-            'ndbi': "(b('swir1{s}') - b('nir{s}')) / (b('swir1{s}') + b('nir{s}'))",
-            'ndmi': "(b('nir{s}') - b('swir1{s}')) / (b('nir{s}') + b('swir1{s}'))",
-            'ndwi': "(b('nir{s}') - b('swir2{s}')) / (b('nir{s}') + b('swir2{s}'))",
-            'awei': "4 * (b('green{s}') - b('swir2{s}')) - (0.25 * b('nir{s}') + 2.75 * b('swir1{s}'))",
-            'iia': "(b('green{s}') - 4 * b('nir{s}')) / (b('green{s}') + 4 * b('nir{s}'))",
-            'evi': "2.4 * (b('nir{s}') - b('red{s}')) / (1 + b('nir{s}') + b('red{s}'))",
-            'gcvi': "(b('nir{s}') / b('green{s}')) - 1",
-            'gemi': "(2 * (b('nir{s}') * b('nir{s}') - b('red{s}') * b('red{s}')) + 1.5 * b('nir{s}') + 0.5 * b('red{s}')) / (b('nir{s}') + b('green{s}') + 0.5)",
-            'cvi': "b('nir{s}') * (b('green{s}') / (b('blue{s}') * b('blue{s}')))",
-            'gli': "(2 * b('green{s}') - b('red{s}') - b('blue{s}')) / (2 * b('green{s}') + b('red{s}') + b('blue{s}'))",
-            'shape': "(2 * b('red{s}') - b('green{s}') - b('blue{s}')) / (b('green{s}') - b('blue{s}'))",
-            'afvi': "(b('nir{s}') - 0.5 * b('swir2{s}')) / (b('nir{s}') + 0.5 * b('swir2{s}'))",
-            'avi': "(b('nir{s}') * (1.0 - b('red{s}')) * (b('nir{s}') - b('red{s}'))) ** 0.3333", 
-            'bsi': "((b('swir1{s}') - b('red{s}')) - (b('nir{s}') + b('blue{s}'))) / ((b('swir1{s}') + b('red{s}')) + (b('nir{s}') + b('blue{s}')))",
-            'brba': "b('red{s}') / b('swir1{s}')",
-            'dswi5': "(b('nir{s}') + b('green{s}')) / (b('swir1{s}') + b('red{s}'))",
-            'lswi': "(b('nir{s}') - b('swir1{s}')) / (b('nir{s}') + b('swir1{s}'))",
-            'mbi': "((b('swir1{s}') - b('swir2{s}') - b('nir{s}')) / (b('swir1{s}') + b('swir2{s}') + b('nir{s}'))) + 0.5",
-            'ui': "(b('swir2{s}') - b('nir{s}')) / (b('swir2{s}') + b('nir{s}'))",
-            'osavi': "(b('nir{s}') - b('red{s}')) / (0.16 + b('nir{s}') + b('red{s}'))",
-            'gndvi': "(b('nir{s}') - b('green{s}')) / (b('nir{s}') + b('green{s}'))",
-            'brightness': "0.3037 * b('blue{s}') + 0.2793 * b('green{s}') + 0.4743 * b('red{s}') + 0.5585 * b('nir{s}') + 0.5082 * b('swir1{s}') + 0.1863 * b('swir2{s}')",
-            'wetness': "0.1509 * b('blue{s}') + 0.1973 * b('green{s}') + 0.3279 * b('red{s}') + 0.3406 * b('nir{s}') + 0.7112 * b('swir1{s}') + 0.4572 * b('swir2{s}')",
-            'msi': "b('nir{s}') / b('swir1{s}')",
-            'gvmi': "((b('nir{s}') + 0.1) - (b('swir1{s}') + 0.02)) / ((b('nir{s}') + 0.1) + (b('swir1{s}') + 0.02))",
-            'pri': "(b('green{s}') - b('blue{s}')) / (b('green{s}') + b('blue{s}'))",
-            'nbr': "(b('nir{s}') - b('swir1{s}')) / (b('nir{s}') + b('swir1{s}'))",
-            'ndti': "(b('swir1{s}') - b('swir2{s}')) / (b('swir1{s}') + b('swir2{s}'))"
-        }
 
-        novas_bandas_base = []
-        
+        # Puxa o dicionário gigante do seu arquivo de configuração!
+        formulas_base = arqParams.FORMULAS_INDICES_ESPECTRAIS
+
+        novas_bandas_base = []        
         for s in sufixos:
             print("sufixos ==> ", s)
             for nome_indice, expressao in formulas_base.items():

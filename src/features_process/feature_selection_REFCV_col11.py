@@ -7,7 +7,7 @@ import argparse
 import pandas as pd
 # import numpy as np
 from pathlib import Path
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.feature_selection import RFECV
 from sklearn.model_selection import StratifiedKFold
 
@@ -120,7 +120,7 @@ for bacia in nameBacias[pos_inic: pos_end]:
         print(f"   ⚙️ Iniciando RFECV (Features: {X.shape[1]}, Amostras: {X.shape[0]})...")
         
         # 5. OTIMIZAÇÃO MÁXIMA: Roda 1 único estimador padrão com step=0.05 (elimina 5% por vez)
-        clf = GradientBoostingClassifier(n_estimators=40, learning_rate=0.1, random_state=42)
+        clf = HistGradientBoostingClassifier(max_iter=40, learning_rate=0.1, random_state=42)
         cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=42)
         
         # O step=0.05 faz o RFECV voar, descartando blocos de variáveis irrelevantes de uma vez

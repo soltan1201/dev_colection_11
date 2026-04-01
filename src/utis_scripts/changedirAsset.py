@@ -39,22 +39,26 @@ listaNameBacias = [
 ]
 print(f" here we have {len(listaNameBacias)} basin")
 # ee.data.renameAsset(sourceId, destinationId, callback)
-asset_output = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesv1CC'
+asset_output = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
 # asset_input = 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/POS-CLASS/Gap-fills'
-asset_input = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_byBasinInd'
-# asset_output = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/ClassifyVA'
-# asset_input = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/ClassifV1'
+asset_input = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/ClassifyV2YX'
+# asset_output = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/ClassifyV2YX'
+# asset_input = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
 changeConta = False
-fromImgCol = False
-versionMapping = 10
+fromImgCol = True
+versionMapping = 1
 # sys.exit()
 
 if fromImgCol:
     imgCol = ee.ImageCollection(asset_input).filter(ee.Filter.eq('version', versionMapping))
     lstIds = imgCol.reduceColumns(ee.Reducer.toList(), ['system:index']).get('list').getInfo()
-
-    for cc, masset in enumerate(lstIds):
-        print(cc, ' => move ', masset, " to ImageCollection in NEXGENTMAP")
+    new_listIDs = [ii for ii in lstIds if 'col11' in ii ]
+    print(f"---- We move {len(new_listIDs)} image to other asset ImageCollection ------- ")
+    # print(imgCol.first().getInfo())
+    num_file = len(new_listIDs)
+    # sys.exit()
+    for cc, masset in enumerate(new_listIDs):
+        print(f" --- {cc + 1}/{num_file}  to move >> {masset} to ImageCollection {asset_output.replace("projects/mapbiomas-workspace/AMOSTRAS/", '.../')}")
         sendFilenewAsset(asset_input + '/' + masset, asset_output + '/' + masset)
 
 else:

@@ -8,7 +8,7 @@ var vis = {
     FalsaCor: {bands: ['swir1_median_dry', 'nir_median_dry', 'red_median_dry'], min: 300, max: 4000, gamma: 1.5},
     CorVerdadeira : {bands: ['red_median_dry', 'green_median_dry', 'blue_median_dry'], min: 200, max: 1500, gamma: 1.2},
 }; 
-var lst_year = [2024];  //2022, 2023, 
+var lst_year = [2022, 2023, 2024];  //
 var asset_cobertura = "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_coverage_v2";
 var asset_savana = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_Savana';
 // 1. Carrega a área de pesquisa (Grades) e centraliza o mapa

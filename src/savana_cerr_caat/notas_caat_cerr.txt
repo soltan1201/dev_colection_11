@@ -14,3 +14,5 @@ projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/grades_area_coleta_caa
 
 
 Seria interesante seguir o tempo seco para tentar separar 
+aqui tenta separar pelos 3 anos de classificação 
+https://code.earthengine.google.com/1969e5328c8174b017cf21c76a423c3d 
