@@ -16,14 +16,14 @@ from sklearn.model_selection import StratifiedKFold
 # =================================================================
 pathparent = str(Path(os.getcwd()).parents[0])
 sys.path.append(pathparent)
-from configure_account_projects_ee import get_current_account  # noqa: E402
-from gee_tools import *  # noqa: E402, F403
+# from configure_account_projects_ee import get_current_account  # noqa: E402
+# from gee_tools import *  # noqa: E402, F403
 
-projAccount = get_current_account()
-print(f"projeto >>> {projAccount}")
+# projAccount = get_current_account()
+# print(f"projeto >>> {projAccount}")
 
 try:
-    ee.Initialize(project= projAccount)
+    ee.Initialize(project= 'mapbiomas-caatinga-cloud04')
     print('✅ Earth Engine inicializado com sucesso!')
 except Exception as e:
     print(f"❌ Erro ao inicializar o GEE: {e}")
