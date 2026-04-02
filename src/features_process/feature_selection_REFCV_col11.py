@@ -7,16 +7,23 @@ import argparse
 import pandas as pd
 # import numpy as np
 from pathlib import Path
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import RFECV
 from sklearn.model_selection import StratifiedKFold
 
 # =================================================================
 # INICIALIZAÇÃO GEE
 # =================================================================
-# No seu servidor local, certifique-se de ter rodado `earthengine authenticate` antes
+pathparent = str(Path(os.getcwd()).parents[0])
+sys.path.append(pathparent)
+from configure_account_projects_ee import get_current_account  # noqa: E402
+from gee_tools import *  # noqa: E402, F403
+
+projAccount = get_current_account()
+print(f"projeto >>> {projAccount}")
+
 try:
-    ee.Initialize(project= 'mapbiomas-caatinga-cloud04')
+    ee.Initialize(project= projAccount)
     print('✅ Earth Engine inicializado com sucesso!')
 except Exception as e:
     print(f"❌ Erro ao inicializar o GEE: {e}")
@@ -120,17 +127,18 @@ for bacia in nameBacias[pos_inic: pos_end]:
         print(f"   ⚙️ Iniciando RFECV (Features: {X.shape[1]}, Amostras: {X.shape[0]})...")
         
         # 5. OTIMIZAÇÃO MÁXIMA: Roda 1 único estimador padrão com step=0.05 (elimina 5% por vez)
-        clf = HistGradientBoostingClassifier(max_iter=40, learning_rate=0.1, random_state=42)
+        clf = RandomForestClassifier(n_estimators=400, n_jobs=-1, random_state=42)
         cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=42)
         
         # O step=0.05 faz o RFECV voar, descartando blocos de variáveis irrelevantes de uma vez
         rfecv = RFECV(
-            estimator= clf, 
-            step= 0.05, 
-            cv= cv, 
-            scoring= 'accuracy', 
+            estimator= clf,
+            step= 0.05,
+            cv= cv,
+            scoring= 'accuracy',
             n_jobs=-1, # Usa todos os núcleos do seu servidor Arch Linux
-            min_features_to_select= MIN_FEATURES
+            min_features_to_select= MIN_FEATURES,
+
         )        
         try:
             rfecv.fit(X, y)
