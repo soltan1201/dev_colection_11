@@ -37,13 +37,14 @@ lstFeats = [
 
 
 nameBacias = [
-    '7754', '7691', '7581', '7625', '7584', '751', '7614', 
-    '752', '7616', '745', '7424', '773', '7612', '7613', 
-    '7618', '7561', '755', '7617', '7564', '761111','761112', 
-    '7741', '7422', '76116', '7761', '7671', '7615', '7411', 
-    '7764', '757', '771', '7712', '766', '7746', '753', '764', 
-    '7541', '7721', '772', '7619', '7443', '765', '7544', '7438', 
-    '763', '7591', '7592', '7622', '746'
+    # '7754', '7691', '7581', '7625', '7584', '751', '7614', 
+    # '752', '7616', '745', '7424', '773', '7612', '7613', 
+    # '7618', '7561', '755', '7617', '7564', '761111','761112', 
+    # '7741', '7422', '76116', '7761', '7671', '7615', '7411', 
+    # '7764', '757', '771', '7712', '766', '7746', '753', '764', 
+    # '7541', '7721', '772', '7619', '7443', '765', '7544', '7438', 
+    # '763', '7591', '7592', '7622', '746'
+    "7424","7612","7561","7617","7564","76116","7438"
 ]
 
 
@@ -57,22 +58,24 @@ class make_resampling_cleaning(object):
         'outros': [12, 22, 25, 33, 29, 36, 19]
     } 
 
+    # dictQtLimit = {
+    #     '3': 5000, '4': 10000, '12': 3200, '15': 8000,
+    #     '18': 8000, '19': 3000, '21': 4000, '22': 3000,
+    #     '25': 3000, '29': 2000, '33': 2000, '36': 1600
+    # }
     dictQtLimit = {
-        '3': 5000, '4': 10000, '12': 3200, '15': 8000,
-        '18': 8000, '19': 3000, '21': 4000, '22': 3000,
-        '25': 3000, '29': 2000, '33': 2000, '36': 1600
+        '3': 600,  '4': 1300, '12': 300, '15': 1050,
+        '18': 100, '19': 120, '21': 750, '22': 400, 
+        '25': 400, '29': 200, '33': 100, '36': 120
     }
-    asset_output =  "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesv1CC"
-
-    def __init__(self, path_Input, prefixo, nbasin, anos_processar): # lstProcFails
+    def __init__(self, path_Input, path_Output, prefixo, nbasin, anos_processar): # lstProcFails
         self.name_basin = nbasin
-        print(f"\n======= Processando FeatureCollecton << {self.name_basin} >> =======\n Asset: {path_Input.split("/")[-1]}")   
-        
+        print(f"\n======= Processando FeatureCollecton << {self.name_basin} >> =======\n Asset: {path_Input.split('/')[-1]}")
+
         # self.lstProcFails = lstProcFails
-        self.asset_featc = os.path.join(path_Input, f'{prefixo}_{nbasin}')
+        self.asset_featc     = os.path.join(path_Input,  f'{prefixo}_{nbasin}')
+        self.asset_featc_out = os.path.join(path_Output, f'{prefixo}_{nbasin}')
         self.dir_featSel = os.path.join(pathparent, 'dados', 'FS_col11_json')
-        self.name_folder_input = path_Input.split("/")[-1]
-        self.name_folder_output = self.asset_output.split("/")[-1]
         
         self.rate_learn = 0.1
         self.max_leaf_node = 50
@@ -122,7 +125,7 @@ class make_resampling_cleaning(object):
 
         return lst_tmp
 
-    def load_features_ROIs(self, make_complex, deletar_asset=False):
+    def load_features_ROIs(self, make_complex, deletar_asset=False, by_year= True):
         
         pmtros_GTB = {
             'numberOfTrees': int(self.max_leaf_node), 
@@ -131,8 +134,7 @@ class make_resampling_cleaning(object):
             'loss': "LeastSquares",
             'seed': int(0)
         }
-        
-        fc_tmp = ee.FeatureCollection(self.asset_featc)     
+             
         # print(fc_tmp.first().propertyNames().getInfo())    
 
         # for idAssetOut in self.lstProcFails:
@@ -150,9 +152,12 @@ class make_resampling_cleaning(object):
         # ITERA APENAS NOS ANOS FALTANTES PASSADOS PARA A CLASSE
         for nyear in self.anos_processar:
             print(f"\n>>>>>> PROCESSANDO APENAS O ANO FALTANTE: {nyear} <<<<<<")
-            fcYY = fc_tmp.filter(ee.Filter.eq('year', nyear))
-            # Garante que o nome de saída tenha o sufixo correto
-            idAssetOut =  self.asset_featc.replace(self.name_folder_input, self.name_folder_output) + f'_{nyear}'             
+            if by_year:            
+                fcYY = ee.FeatureCollection(f"{self.asset_featc}_{nyear}")
+            else:                
+                fcYY = ee.FeatureCollection(self.asset_featc).filter(ee.Filter.eq('year', nyear))
+            # Garante que o nome de saída aponte para asset_output
+            idAssetOut = self.asset_featc_out + f'_{nyear}'
 
             if deletar_asset:
                 print(f"🗑️ Checando/Deletando asset antigo .... {idAssetOut}")
@@ -180,47 +185,64 @@ class make_resampling_cleaning(object):
                 for tipo, classes_in_group in self.dictGroup.items():
                     print("run group ", tipo)
                     fcYYtipo = fcYY.filter(ee.Filter.inList('class', classes_in_group))
-                    
-                    if tipo in ['vegetation', 'agropecuaria']:                             
-                        for nclass in classes_in_group:
 
-                            # TRUQUE 1: Cria classe alvo (is_target) sem perder a classe original!
-                            fcYYbyClass = fcYYtipo.map(lambda f: f.set('is_target', 
+                    if tipo in ['vegetation', 'agropecuaria']:
+                        # Verifica server-side se o grupo tem amostras suficientes para treinar
+                        n_grupo = fcYYtipo.size().getInfo()
+                        if n_grupo < 2:
+                            print(f"  ⚠️ Grupo '{tipo}' vazio ou insuficiente ({n_grupo} amostras) — adicionando sem GTB.")
+                            lista_feature_collections.append(fcYYtipo)
+                            continue
+
+                        # Para vegetation: se classe 3 < 50 OU classe 4 < 600 → passa tudo sem GTB
+                        if tipo == 'vegetation':
+                            n_cl3 = fcYYtipo.filter(ee.Filter.eq('class', 3)).size().getInfo()
+                            n_cl4 = fcYYtipo.filter(ee.Filter.eq('class', 4)).size().getInfo()
+                            if n_cl3 < 50 or n_cl4 < 600:
+                                print(f"  ⚠️ Vegetation insuficiente (cl3={n_cl3}, cl4={n_cl4}) — passando tudo sem GTB.")
+                                lista_feature_collections.append(fcYYtipo)
+                                continue
+
+                        for nclass in classes_in_group:
+                            fcYYbyClass = fcYYtipo.map(lambda f: f.set('is_target',
                                 ee.Algorithms.If(ee.Number(f.get('class')).eq(nclass), 1, 0)))
-                            
-                            # print(fcYYbyClass.aggregate_histogram("is_target").getInfo())
+
+                            # Verifica se há amostras da classe-alvo para classificar
+                            n_target = fcYYbyClass.filter(ee.Filter.eq('is_target', 1)).size().getInfo()
+                            if n_target == 0:
+                                print(f"  ⚠️ Classe {nclass} sem amostras em {nyear} — pulando GTB para essa classe.")
+                                continue
+
                             # Treina o GTB para reconhecer apenas essa classe vs o resto do grupo
                             classifierGTB = (ee.Classifier.smileGradientTreeBoost(**pmtros_GTB)
                                             .train(fcYYbyClass, 'is_target', feat_selected)
                                             .setOutputMode('PROBABILITY'))
-                            
+
                             # Classifica apenas os pixels que REALMENTE SÃO dessa classe
                             classROIsGTB = (fcYYbyClass.filter(ee.Filter.eq('is_target', 1))
                                                 .classify(classifierGTB, 'label'))
-                            
-                            # TRUQUE 2: Fatiamento de probabilidade achatado (Evita .merge() recursivo)
+
+                            # Fatiamento de probabilidade achatado
                             for ii in range(20, 100, 10):
                                 frac_inic = ii / 100.0
-                                frac_end = (ii + 10) / 100.0 
-                                
+                                frac_end = (ii + 10) / 100.0
+
                                 bin_fc = classROIsGTB.filter(
                                     ee.Filter.And(
                                         ee.Filter.gt('label', frac_inic),
                                         ee.Filter.lte('label', frac_end)
                                     )
                                 )
-                                
+
                                 limit = self.dictQtLimit.get(str(nclass), 2000)
                                 sizeFilt = bin_fc.size()
-                                
-                                # Processamento condicional nativo
+
                                 bin_fc_sampled = ee.Algorithms.If(
                                     sizeFilt.gt(limit),
                                     self.downsamplesFC(bin_fc, ee.Number(limit).divide(sizeFilt)),
                                     bin_fc
                                 )
-                                
-                                # Adiciona à lista Mestra
+
                                 lista_feature_collections.append(ee.FeatureCollection(bin_fc_sampled))
                     else:
                         # Para o grupo "outros", apenas junta sem filtro GTB
@@ -268,7 +290,7 @@ class make_resampling_cleaning(object):
 
 def GetPolygonsfromFolder(dict_folder):
     # print("lista de classe ", lstClasesBacias)
-    getlistPtos = ee.data.listAssets(dict_folder['id'])
+    getlistPtos = ee.data.listAssets(dict_folder)
     assets_lista = getlistPtos['assets']
     # declarar lista para guardar cada um dos assets
     lst_asset = []
@@ -280,38 +302,6 @@ def GetPolygonsfromFolder(dict_folder):
     
     return  lst_asset
 
-def gerenciador(cont):
-    #=====================================#
-    # gerenciador de contas para controlar# 
-    # processos task no gee               #
-    #=====================================#
-    numberofChange = [kk for kk in param['conta'].keys()]    
-    print(numberofChange)
-    
-    if str(cont) in numberofChange:
-        print(f"inicialize in account #{cont} <> {param['conta'][str(cont)]}")
-        switch_user(param['conta'][str(cont)])
-        projAccount = get_project_from_account(param['conta'][str(cont)])
-        try:
-            ee.Initialize(project= projAccount) # project='ee-cartassol'
-            print('The Earth Engine package initialized successfully!')
-        except ee.EEException as e:
-            print('The Earth Engine package failed to initialize!') 
-        
-        # relatorios.write("Conta de: " + param['conta'][str(cont)] + '\n')
-
-        tarefas = tasks(
-            n= param['numeroTask'],
-            return_list= True)
-        
-        for lin in tarefas:   
-            print(str(lin))         
-            # relatorios.write(str(lin) + '\n')
-    
-    elif cont > param['numeroLimit']:
-        return 0
-    cont += 1    
-    return cont
 
 
 def get_dict_ROIs_fails(lstIdAssets):
@@ -335,10 +325,10 @@ def get_dict_ROIs_fails(lstIdAssets):
     lstBacias = list(dict_basinYY.keys())
     for nbacia in nameBacias:
         if nbacia not in lstBacias:
-            dict_basinYYfails[nbacia] = [os.path.join(param["asset_output"], f'{nbacia}_{yyear}_cd') for yyear in list(range(1985, 2025))]
+            dict_basinYYfails[nbacia] = [os.path.join(param["asset_output"], f'{nbacia}_{yyear}_cd') for yyear in list(range(1985, 2026))]
         else:
             # listando os falhos 
-            lstFails = [os.path.join(param["asset_output"], f'{nbacia}_{yyear}_cd') for yyear in  range(1985, 2025) if yyear not in dict_basinYY[nbacia]]
+            lstFails = [os.path.join(param["asset_output"], f'{nbacia}_{yyear}_cd') for yyear in  range(1985, 2026) if yyear not in dict_basinYY[nbacia]]
             # registrando no dictionario 
             if len(lstFails) > 0:
                 dict_basinYYfails[nbacia] = lstFails
@@ -375,24 +365,12 @@ def make_dict_ROIs_byClass(lstIdAssets):
 # https://code.earthengine.google.com/c419b4781c6469fcedd46449245cbd40
 
 param = {
-    "asset_folder": {"id": "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_byBasinInd"},
-    "asset_output": "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesv1CC",
-    'numeroTask': 6,
-    'numeroLimit': 50,
-    'conta' : {
-        '0': 'caatinga01',   # 
-        '7': 'caatinga02',
-        '14': 'caatinga03',
-        '21': 'caatinga04',
-        '28': 'caatinga05',
-        '35': 'solkan1201',                  
-        '42': 'solkanGeodatin',
-        '50': 'superconta'   
-    },
+    "asset_folder": "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesCCred",
+    "asset_output": "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesCCredv2",
 }
 
 lista_assets = GetPolygonsfromFolder(param['asset_folder'])
-print(f" we loaded {len(lista_assets)} asset from folder < {param['asset_folder']['id'].split('/')[-1]} >")
+print(f" we loaded {len(lista_assets)} asset from folder < {param['asset_folder'].split('/')[-1]} >")
 # print(lista_assets[:3])
 
 # dictProcs = get_dict_ROIs_fails(lista_assets)
@@ -430,42 +408,69 @@ makedictErro = False
 #             dictFailsProcs = json.load(arquivo_json)
 #         print("dictionary readed as dict_basin_year_ROIs_byClass.json")
 
-# nameBacias = [
-#     '7754', '7691', '7581', '7625', '7584', '751', '7614', 
-#     '752', '7616', '745', '7424', '773', '7612', '7613', 
-#     '7618', '7561', '755', '7617', '7564', '761111','761112', 
-#     '7741', '7422', '76116', '7761', '7671', '7615', '7411', 
-#     '7764', '757', '771', '7712', '766', '7746', '753', '764', 
-#     '7541', '7721', '772', '7619', '7443', '765', '7544', '7438', 
-#     '763', '7591', '7592', '7622', '746'
-# ] 
-nameBacias = ['7754']  # , '7443', '7544'
+nameBacias = [
+    '7754', '7691', '7581', '7625', '7584', '751', '7614',
+    '752', '7616', '745', '7424', '773', '7612', '7613',
+    '7618', '7561', '755', '7617', '7564', '761111','761112',
+    '7741', '7422', '76116', '7761', '7671', '7615', '7411',
+    '7764', '757', '771', '7712', '766', '7746', '753', '764',
+    '7541', '7721', '772', '7619', '7443', '765', '7544', '7438',
+    '763', '7591', '7592', '7622', '746'
+]
+# nameBacias = ['7422', '7443', '7544']
+
+# ── Levanta o que já está salvo no asset_output ──────────────────────────────
+print(f"Verificando assets já salvos em: {param['asset_output'].split('/')[-1]} ...")
+try:
+    lista_assets_output = GetPolygonsfromFolder(param['asset_output'])
+except Exception:
+    lista_assets_output = []
+
+saved_set = set()
+for caminho in lista_assets_output:
+    nome = caminho.split('/')[-1]   # rois_fromBasin_7754_1985
+    partes = nome.split('_')
+    # partes: ['rois', 'fromBasin', '<bacia>', '<ano>']
+    if len(partes) >= 4 and partes[1] == 'fromBasin':
+        saved_set.add((partes[2], int(partes[3])))
+
+print(f"  {len(saved_set)} assets já encontrados no output — serão pulados.")
+# ─────────────────────────────────────────────────────────────────────────────
+
 # 1. Definimos EXATAMENTE o que precisa ser processado
 procelstYear = True
 bacias_faltantes = {
-    # '7422': [2020],
-    # '7443': [2021],
-    '7754': [1985],
-    # '7544': [2005, 2015]
+    "7424": [2025],
+    "7612": [2025],
+    "7561": [2025],
+    "7617": [2025],
+    "7564": [2025],
+    "76116": [2025],
+    "7438": [2025]
 }
 if len(bacias_faltantes.keys()) > 0:
     procelstYear = False
-    
+processing_byYear = True
 cc = 0
-for cc, nameBacia in enumerate(nameBacias[:]): 
+for cc, nameBacia in enumerate(nameBacias[:]):
     if procelstYear:
-        lstYear = list(range(1985, 2026))
-        print(f"#{cc}  >>> {nameBacia}  ") 
-        print(param["asset_folder"]["id"])
-        resampled_cleaned = make_resampling_cleaning(param["asset_folder"]["id"], "rois_fromGrade", nameBacia, lstYear)
+        lstYear = [y for y in range(1985, 2026) if (nameBacia, y) not in saved_set]
+        if not lstYear:
+            print(f"#{cc}  >>> {nameBacia}  — todos os anos já salvos, pulando.")
+            continue
+        print(f"#{cc}  >>> {nameBacia}  — {len(lstYear)} anos a processar: {lstYear}")
+        resampled_cleaned = make_resampling_cleaning(param["asset_folder"], param["asset_output"], "rois_fromBasin", nameBacia, lstYear)
         metodo_complexo = True
-        resampled_cleaned.load_features_ROIs(metodo_complexo, True)
+        resampled_cleaned.load_features_ROIs(metodo_complexo, False, processing_byYear)
 
     else:
         if nameBacia in list(bacias_faltantes.keys()):
-            print(f"#{cc}  >>> {nameBacia}  ") 
-            print(param["asset_folder"]["id"])
-            resampled_cleaned = make_resampling_cleaning(param["asset_folder"]["id"], "rois_fromGrade", nameBacia, bacias_faltantes[nameBacia])
+            lstYear = [y for y in bacias_faltantes[nameBacia] if (nameBacia, y) not in saved_set]
+            if not lstYear:
+                print(f"#{cc}  >>> {nameBacia}  — todos os anos já salvos, pulando.")
+                continue
+            print(f"#{cc}  >>> {nameBacia}  — {len(lstYear)} anos a processar: {lstYear}")
+            resampled_cleaned = make_resampling_cleaning(param["asset_folder"], param["asset_output"], "rois_fromBasin", nameBacia, lstYear)
             metodo_complexo = True
-            resampled_cleaned.load_features_ROIs(metodo_complexo, False)
+            resampled_cleaned.load_features_ROIs(metodo_complexo, False, processing_byYear)
 

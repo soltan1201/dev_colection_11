@@ -127,7 +127,7 @@ for bacia in nameBacias[pos_inic: pos_end]:
         print(f"   ⚙️ Iniciando RFECV (Features: {X.shape[1]}, Amostras: {X.shape[0]})...")
         
         # 5. OTIMIZAÇÃO MÁXIMA: Roda 1 único estimador padrão com step=0.05 (elimina 5% por vez)
-        clf = RandomForestClassifier(n_estimators=800, n_jobs=-1, random_state=42)
+        clf = RandomForestClassifier(n_estimators=800, n_jobs=1, random_state=42)
         cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=42)
         
         # O step=0.05 faz o RFECV voar, descartando blocos de variáveis irrelevantes de uma vez

@@ -12,6 +12,7 @@ var BUFFER_M  = 300; // 10 pixels Landsat 30m
 var grade = ee.FeatureCollection(ASSET_IN);
 print('Total de grades:', grade.size());
 print('Primeira grade (props):', grade.first().propertyNames());
+print('Primeira grade (valores):', grade.first().toDictionary()); // confirma o nome do campo de ID
 
 // Aplica buffer preservando todas as propriedades originais
 var gradeBuffer = grade.map(function(feat) {
@@ -25,6 +26,7 @@ Map.addLayer(gradeBuffer, {color: 'red'},   'Grade +300m buffer');
 
 print('Exemplo grade original:',  grade.first().geometry().area().divide(1e6).round(), 'km²');
 print('Exemplo grade buffered:',  gradeBuffer.first().geometry().area().divide(1e6).round(), 'km²');
+print('ID da primeira grade (indice):', grade.first().get('indice'));
 
 // Export
 Export.table.toAsset({

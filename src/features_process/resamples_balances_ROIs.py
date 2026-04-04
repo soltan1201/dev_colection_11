@@ -7,9 +7,10 @@
 # DISTRIBUIDO COM GPLv2
 '''
 
-import ee 
+import ee
 import sys
 import os
+import json
 from pathlib import Path
 import collections
 
@@ -38,21 +39,38 @@ quant_PtosxClass = [1000, 2500, 600, 1850, 850, 1000, 650, 500, 600, 600]
 base_limits = dict(zip(lst_Classe, quant_PtosxClass))
 
 nameBacias = [
-    '7411', '7754', '7691', '7581', '7625', '7584', '751', '7614', 
-    '752', '7616', '745', '7424', '773', '7612', '7613', 
-    '7618', '7561', '755', '7617', '7564', '761111', '761112', 
-    '7741', '7422', '76116', '7761', '7671', '7615',  
-    '7764', '757', '771', '7712', '766', '7746', '753', '764', 
-    '7721', '772', '7619', '765', '7438', '7591', '7592', '7622',
-    '746', '7541', '7443', '7544', '763'    
+    # '7411', '7754', '7691', '7581', '7625', '7584', '751', 
+    # '7614', '752', '7616', '745', '7424', '773', '7612', '7613', 
+    # '7618', '7561', '755', '7617', '7564', '761111', '761112', 
+    # '7741', '7422', '76116', '7761', '7671', '7615', '7764', 
+    # '757', '771', '7712', '766', '7746', '753', '764', '7721', 
+    # '772', '7619', '765', '7438', '7591', '7592', '7622', '746', 
+    # '7541', '7443', '7544', '763'    
+    "7424","7612","7561","7617","7564","76116","7438"
 ]
+
 
 assets_input_stat = 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/ROIs/stats_mosaics_ba/all_statisticsMosaicC9_'
 asset_input = "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesv1CC"
 assets_output = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesCCred'
 
-ano_inicial = 1985
-ano_final = 2025
+# =========================================================================
+# CARREGA FALTANTES — se o JSON existir, processa só os que faltam
+# =========================================================================
+JSON_FALTANTES = os.path.join(
+    os.path.dirname(__file__),
+    '../utis_scripts/dict_bacias_anos_faltantes_CCred_fromBasin.json'
+)
+
+# if os.path.exists(JSON_FALTANTES):
+#     with open(JSON_FALTANTES, 'r', encoding='utf-8') as f:
+#         dict_faltantes = json.load(f)
+#     # Filtra nameBacias para só as que têm faltantes
+#     nameBacias = [b for b in nameBacias if b in dict_faltantes]
+#     print(f"Modo FALTANTES: {len(nameBacias)} bacias com anos pendentes (fonte: {os.path.basename(JSON_FALTANTES)})")
+# else:
+#     dict_faltantes = None
+#     print("JSON de faltantes não encontrado — processando todas as bacias/anos.")
 
 # =========================================================================
 # LÓGICA DE PROCESSAMENTO
@@ -62,7 +80,9 @@ print(f"Iniciando agendamento de tarefas para {len(nameBacias)} bacias...")
 total_tasks = 0
 
 for basin in nameBacias:
-    for year in range(ano_inicial, ano_final + 1):
+    # anos_basin = dict_faltantes[basin] if dict_faltantes else list(range(1985, 2026))
+    anos_basin = [2025]
+    for year in anos_basin:
         
         # 1. Tratativa para 2024 e 2025 usarem a referência estatística de 2023
         year_stats = 2023 if year in [2024, 2025] else year
@@ -119,7 +139,7 @@ for basin in nameBacias:
         fc_final = ee.FeatureCollection(lista_fc_classes).flatten()
         
         # 6. Exportação
-        task_name = f"Bal_Amostras_{basin}_{year}"
+        task_name = asset_id_out.split("/")[-1]
         
         task = ee.batch.Export.table.toAsset(
             collection=fc_final,

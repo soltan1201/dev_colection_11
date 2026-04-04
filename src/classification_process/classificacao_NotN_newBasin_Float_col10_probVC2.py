@@ -56,18 +56,18 @@ class ClassMosaic_indexs_Spectral(object):
         # 'asset_joinsGrBa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_resample_featmaps',
         'asset_joinsGrBa': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/ROIs_clean_downsamplesCCred',
         # 'asset_joinsGrBaMB': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/ROIs/rois_resample_featmaps',
-        'assetOutMB': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/Classify_fromMMBV2',
+        # 'assetOutMB': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/Classifier/Classify_fromMMBV2',
         'assetOut': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1',
         # 'asset_output': 'projects/nexgenmap/SAMPLES/Caatinga',
         # Spectral bands selected
-        'lsClasse': [4, 3, 12, 15, 18, 21, 22, 33],
-        'lsPtos': [300, 500, 300, 350, 150, 100, 150, 300],
+        'lsClasse': [  3,   4,  12,  15,  19,  21,  22,  29,  33,  36],
+        'lsPtos':   [300, 800, 300, 650, 250, 100, 150, 150, 300, 200],
         "anoIntInit": 1985,
         "anoIntFin": 2025,
         'dict_classChangeBa': arqParams.dictClassRepre,
         # https://scikit-learn.org/stable/modules/ensemble.html#gradient-boosting
         'pmtGTB': {
-            'numberOfTrees': 10, 
+            'numberOfTrees': 30, 
             'shrinkage': 0.1,         
             'samplingRate': 0.65, 
             'loss': "LeastSquares",#'Huber',#'LeastAbsoluteDeviation', 
@@ -376,23 +376,32 @@ class ClassMosaic_indexs_Spectral(object):
 
     def down_samples_ROIs(self, rois_train):
         dictQtLimit = {
-            '3': 600, '4': 1800, '12': 300, '15': 1050,
-            '18': 100, '21': 750, '22': 400, '29': 200, '33': 100
+            '3': 600, '4': 1200, '12': 300, '15': 1050,
+            '19': 180, '21': 750, '22': 400, '29': 200,
+            '33': 100, '36': 260
         }
         lstFeats = ee.FeatureCollection([])
-        def make_random_select(featCC, limiar):
+        def make_random_select(featCC, limit):
             featCC = featCC.randomColumn()
-            featCC = featCC.filter(ee.Filter.lt('random', ee.Number(limiar).toFloat()))  
+            featCC = featCC.sort('random').limit(limit)
             return featCC
-            
-        for cclass in [3, 4, 12, 22, 33]: 
+
+        all_classes = list(dictQtLimit.keys())
+        for cclass in all_classes:
             feattmp = rois_train.filter(ee.Filter.eq('class', int(cclass)))
             sizeFC = feattmp.size()
+            limit = dictQtLimit[str(cclass)]
             feattmp = ee.Algorithms.If(
-                        ee.Algorithms.IsEqual(ee.Number(sizeFC).gt(ee.Number(dictQtLimit[str(cclass)])),1), 
-                        make_random_select(feattmp, ee.Number(dictQtLimit[str(cclass)]).divide(ee.Number(sizeFC))), 
+                        ee.Algorithms.IsEqual(ee.Number(sizeFC).gt(ee.Number(limit)), 1),
+                        make_random_select(feattmp, limit),
                         feattmp)
             lstFeats = lstFeats.merge(feattmp)
+
+        # Include classes not in dictQtLimit without downsampling
+        classes_not_limited = rois_train.filter(
+            ee.Filter.inList('class', [int(c) for c in all_classes]).Not()
+        )
+        lstFeats = lstFeats.merge(classes_not_limited)
         return ee.FeatureCollection(lstFeats)
     
     def get_ROIs_from_neighbor(self, lst_bacias, asset_root, yyear):
@@ -503,7 +512,7 @@ class ClassMosaic_indexs_Spectral(object):
                 # print(ROIs_toTrain.size().getInfo())
                 # print(ROIs_toTrain.aggregate_histogram('class').getInfo())
                 # otherROIsneighbor = self.get_ROIs_from_neighbor(lstSoViz, asset_rois, nyear)
-                # ROIs_toTrain =  self.down_samples_ROIs(ROIs_toTrain)  #.merge(otherROIsneighbor)
+                ROIs_toTrain =  self.down_samples_ROIs(ROIs_toTrain)  #.merge(otherROIsneighbor)
                 print(" saindo do processo downsamples ")                    
                 # print(ROIs_toTrain.aggregate_histogram('class').getInfo())
                 # lstBandasROIS = ROIs_toTrain.first().propertyNames().getInfo()
@@ -612,7 +621,7 @@ class ClassMosaic_indexs_Spectral(object):
                 # imglsClasxanos = imglsClasxanos.set("system:footprint", baciabuffer.coordinates())
                 classifiedGTB = classifiedGTB.set("system:footprint", baciabuffer.coordinates())
                 # exporta bacia   .coordinates()
-                self.processoExportar(classifiedGTB, baciabuffer, nomec, process_mosaic_EE)
+                self.processoExportar(classifiedGTB, baciabuffer, nomec)
                      
                 # except:
                 #     print("-----------FALTANDO AS AMOSTRAS ----------------")
@@ -621,11 +630,9 @@ class ClassMosaic_indexs_Spectral(object):
             print(f' bacia >>> {nomec}  <<<  foi FEITA ')            
 
     #exporta a imagem classificada para o asset
-    def processoExportar(self, mapaRF, regionB, nameB, proc_mosaicEE):
+    def processoExportar(self, mapaRF, regionB, nameB):
         nomeDesc = 'BACIA_'+ str(nameB)
         idasset =  os.path.join(self.options['assetOut'] , nomeDesc)
-        if not proc_mosaicEE:
-            idasset = os.path.join(self.options['assetOutMB'], nomeDesc)
         optExp = {
             'image': mapaRF, 
             'description': nomeDesc, 
@@ -857,7 +864,7 @@ asset_exportar = param['assetOut']
 process_classification = ClassMosaic_indexs_Spectral()
 lst_bacias_saved = process_classification.lstIDassetS
 # sys.exit()
-for _nbacia in nameBacias[:1]:
+for _nbacia in nameBacias[5:]:
     if knowMapSaved:
         try:
             nameMap = 'BACIA_' + _nbacia + '_' + 'GTB_col10-v' + str(param['version'])
