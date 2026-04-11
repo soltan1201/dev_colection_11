@@ -1,0 +1,23 @@
+Conta de: caatinga02
+Conta de: caatinga03
+Conta de: caatinga04
+Ingest table: "projects/mapbiomas-caatinga-cloud04/assets/Alertas/systemDL26/VETOR_FINAL_PATCHS_S2_Fevereiro_CAAT"  |  COMPLETED  |  GSHP6T2QUCGNVRTJTNLLB4RP
+Ingest table: "projects/mapbiomas-caatinga-cloud04/assets/Alertas/systemDL26/VETOR_FINAL_PATCHS_S2_Janeiro_CAAT"  |  COMPLETED  |  DECQ67O7OBXICODWPBE5H2LW
+Ingest table: "projects/mapbiomas-caatinga-cloud04/assets/Alertas/systemDL26/VETOR_FINAL_PATCHS_S2_Janeiro_CAAT"  |  FAILED  |  23ZSBDY5RHY7FFSPNCIKTYTX
+tfrecord_217_68_2026_02_regiao_3_part_082  |  COMPLETED  |  ZGYD66V4LONE757L4LWLHV72
+tfrecord_217_68_2026_02_regiao_3_part_081  |  COMPLETED  |  QMT52BCVDHVLVOIZRYTK7LMD
+tfrecord_217_68_2026_02_regiao_3_part_080  |  COMPLETED  |  F5SRMRII6Y4JXTOY3I7M5LB6
+Conta de: caatinga05
+Conta de: solkan1201
+fotovoltaic_rural_buffer_5KMmerg  |  COMPLETED  |  FQTZ2IR6YYHW5ZMTR55SUIYE
+fotovoltaic_rural_buffer_5KM_mask  |  COMPLETED  |  7CWPURBJVRBNJYHY4GR4EXD5
+fotovoltaic_rural_buffer_10KM  |  COMPLETED  |  IYICJSJ5PNPF45MH3SLQDGB4
+fotovoltaic_rural_buffer_5KM  |  COMPLETED  |  AQLYO5KKZ5QSQCOU77BXW6NF
+basegrade30KMBufferCaatinga  |  COMPLETED  |  ISCFEMK6E42CZGHUYNVOXH6B
+Conta de: superconta
+filterGF_BACIA_7584_GTB_V1  |  RUNNING  |  HSGJTUG6W33GEAAFG4OEI6FQ
+filterGF_BACIA_7625_GTB_V1  |  RUNNING  |  LJ2SXQOGHVI742VDSGTJ4CYK
+filterGF_BACIA_7581_GTB_V1  |  RUNNING  |  KPSVYQYAH5AAVLFUEJCHTKCC
+filterGF_BACIA_7754_GTB_V1  |  RUNNING  |  AJFMFJA43EFEGJRTZCSR4KMX
+filterGF_BACIA_7691_GTB_V1  |  RUNNING  |  7KHCW2K3YC6PMBXNRHRDXDYU
+filterGF_BACIA_751_GTB_V1  |  RUNNING  |  64ZWA67FSD47VN6RHGWZP5QF
