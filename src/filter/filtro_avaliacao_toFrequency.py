@@ -271,4 +271,4 @@ for cc, idbacia in enumerate(listaNameBacias[:]):
     except Exception as e:
         print(f"❌ Erro na bacia {idbacia}: {e}")
 
-    sys.exit()
+    # sys.exit()
