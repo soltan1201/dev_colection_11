@@ -29,9 +29,9 @@ apply_filters_frequency.ipynb:
   [6] Verificação de bandas disponíveis — antes de montar a stack, filtra
       apenas as bandas que existem no asset, protegendo contra anos ausentes.
 
-  [7] Máscara de grupo via imgReclass — usa a imagem reclassificada para
-      identificar se o pixel do ano corrente pertence ao grupo natural ou
-      antrópico, capturando sub-classes (ex: class 5 → 3) corretamente.
+  [7] Máscara de grupo via remap inline — reclassifica o pixel do ano corrente
+      diretamente em cada chamada para identificar se pertence ao grupo natural
+      ou antrópico, capturando sub-classes (ex: class 5 → 3) corretamente.
 
 Uso:
     python filtersFrequency_step4B.py
@@ -69,7 +69,7 @@ except:
 # Colunas esperadas: bacia, l1_naturais, l2_naturais, l3_naturais,
 #                            l1_antropicas, l2_antropicas, l3_antropicas
 # ---------------------------------------------------------------------------
-CSV_LIMIARES_PATH = os.path.join(os.path.dirname(__file__), 'resultados_bacias_limiares.csv')
+CSV_LIMIARES_PATH = os.path.join(os.path.dirname(__file__), 'aval_filters', 'aval_natural_antropic_xBacias.csv')
 
 # Limiares default — usados quando a bacia não consta no CSV
 # naturais:   l1=florestal(3), l2=savânica(4), l3=campestre(12)
@@ -121,20 +121,22 @@ class processo_filterFrequence(object):
         # Grupos de classes para o filtro de frequência
         # [MELHORIA 2] antrópicas agora também recebem filtro de frequência
         'naturais':   [3, 4, 12],    # florestal, savânica, campestre
-        'antropicas': [21, 22, 29],  # pastagem/agricultura, área urbanizada, afloramento rochoso
-
+        'antropicas': [19,21,25,29,36],  # pastagem/agricultura, área urbanizada, afloramento rochoso
+        'janela_input': 5,
         'versionInput': 1,
         'num_classes':  10,   # 7, 10
-        'last_year':    2024,
+        'last_year':    2025,
         'first_year':   1985,
     }
 
     def __init__(self, nameBacia, dict_limiares=None):
         self.id_bacias   = nameBacia
-        self.versoutput  = 5
+        self.versoutput  = 1
         self.versinput   = self.options['versionInput']  # [BUGFIX] era self.versionInput (I maiúsculo)
-        janela           = 0
+        janela           = self.options['janela_input']
 
+        if self.options['num_classes'] == 7:
+            self.options['antropicas'] = [21,25,29]
         # --- Geometria da bacia ---
         fc_bacia = ee.FeatureCollection(self.options['asset_bacias_buffer']).filter(
             ee.Filter.eq('nunivotto4', nameBacia))
@@ -172,15 +174,6 @@ class processo_filterFrequence(object):
         # Projeção base (usada em setDefaultProjection por ano)
         self.proj = self.imgClass.select(self.lstbandNames[0]).projection()
 
-        # --- Reclassifica sub-classes → classes principais ---
-        # imgReclass é usado para: (a) calcular freq maps e (b) identificar grupo do pixel
-        self.imgReclass = ee.Image().byte()
-        for yband in self.lstbandNames:
-            img_tmp = self.imgClass.select(yband).remap(
-                self.options['classMapB'], self.options['classNew'])
-            self.imgReclass = self.imgReclass.addBands(img_tmp.rename(yband))
-        self.imgReclass = self.imgReclass.select(self.lstbandNames)
-
         # --- Constrói mapas de frequência ---
         self._build_vegetation_map()   # naturais  → self.vegetation_map
         self._build_antrop_map()        # antrópicas → self.antrop_map
@@ -199,10 +192,13 @@ class processo_filterFrequence(object):
             ee.Image: mapa com valor = classe dominante (mascarado onde nenhuma domina)
         '''
         # Stack: apenas anos em que o pixel pertence ao grupo
+        def reclass(b):
+            return self.imgClass.select(b).remap(
+                self.options['classMapB'], self.options['classNew'])
+
         stack = ee.ImageCollection([
-            self.imgReclass.select(b)
-                .updateMask(
-                    self.imgReclass.select(b).remap(classes, [1] * len(classes), 0).eq(1))
+            reclass(b)
+                .updateMask(reclass(b).remap(classes, [1] * len(classes), 0).eq(1))
                 .rename(b)
             for b in self.lstbandNames
         ]).toBands()
@@ -213,18 +209,20 @@ class processo_filterFrequence(object):
 
         # Proporções por classe
         prop = {c: freqs[c].divide(freqTot) for c in classes}
-        c1, c2, c3 = classes
-        l1, l2, l3 = limiares['l1'], limiares['l2'], limiares['l3']
 
-        m1 = prop[c1].gte(l1)
-        m2 = prop[c2].gte(l2)
-        m3 = prop[c3].gte(l3)
-
-        # [MELHORIA 4] Hierarquia explícita: c1 > c2 > c3
-        mapa = (ee.Image(0)
-            .where(m1, c1)
-            .where(m2.And(m1.Not()), c2)
-            .where(m3.And(m1.Not()).And(m2.Not()), c3))
+        # [MELHORIA 4] Hierarquia explícita: c1 > c2 > ... > cN (N classes)
+        # limiares['l1'], ['l2'], ... ; para classes extras usa o último limiar disponível
+        limiar_fallback = limiares.get(f'l{len(limiares)}', 0.20)
+        masks = []
+        mapa  = ee.Image(0)
+        for i, c in enumerate(classes):
+            li = limiares.get(f'l{i + 1}', limiar_fallback)
+            mi = prop[c].gte(li)
+            condition = mi
+            for prev_m in masks:
+                condition = condition.And(prev_m.Not())
+            mapa = mapa.where(condition, c)
+            masks.append(mi)
 
         return mapa.updateMask(mapa.gt(0))
 
@@ -250,7 +248,7 @@ class processo_filterFrequence(object):
           - pixels naturais   → substituídos pela classe dominante do vegetation_map
           - pixels antrópicos → substituídos pela classe dominante do antrop_map
           - .unmask(banda) garante que pixels sem classe dominante mantêm valor original
-          - imgReclass identifica o grupo do pixel, capturando sub-classes corretamente
+          - remap inline identifica o grupo do pixel, capturando sub-classes corretamente
         '''
         classes_nat = self.options['naturais']
         classes_ant = self.options['antropicas']
@@ -258,7 +256,7 @@ class processo_filterFrequence(object):
 
         for bandYY in self.lstbandNames:
             banda_orig = self.imgClass.select(bandYY)    # original (pode ter sub-classes)
-            banda_recl = self.imgReclass.select(bandYY)  # reclassificada (classes agrupadas)
+            banda_recl = banda_orig.remap(self.options['classMapB'], self.options['classNew'])
 
             # [MELHORIA 7] Máscara via imgReclass — captura sub-classes no grupo
             mask_n = banda_recl.remap(classes_nat, [1] * len(classes_nat), 0).eq(1)
@@ -356,13 +354,14 @@ def gerenciador(cont):
 # LISTA DE BACIAS (col11 — 49 bacias)
 # ===========================================================================
 listaNameBacias = [
-    '7691', '7754', '7581', '7625', '7584', '751',  '7614',
-    '7616', '745',  '7424', '773',  '7612', '7613',
-    '7618', '7561', '755',  '7617', '7564', '761111', '761112',
-    '7741', '7422', '76116','7761', '7671', '7615', '7411',
-    '7764', '757',  '771',  '766',  '7746', '753',  '764',
-    '7541', '7721', '772',  '7619', '7443', '7544', '7438',
-    '763',  '7591', '7592', '746',  '7712', '7622', '765',
+    # '7691', '7754', '7581', '7625', '7584', '751',  '7614',
+    # '7616', '745',  '7424', '773',  '7612', '7613',
+    # '7618', '7561', '755',  '7617', '7564', '761111', '761112',
+    # '7741', '7422', '76116','7761', '7671', '7615', '7411',
+    # '7764', '757',  '771',  '766',  '7746', '753',  '764',
+    # '7541', '7721', '772',  '7619', '7443', '7544', '7438',
+    # '763',  '7591', '7592', '746',  '7712', '7622', 
+    # '765',
     '752',
 ]
 

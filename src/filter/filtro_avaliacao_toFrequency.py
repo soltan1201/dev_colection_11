@@ -187,7 +187,8 @@ class processo_filterAvaliationNatAnt(object):
 
 
 
-caminho_csv = './aval_filters/aval_natural_antropic_xBacias.csv'
+caminho_csv         = './aval_filters/aval_natural_antropic_xBacias.csv'
+caminho_limiares    = './aval_filters/resultados_bacias_limiares.csv'
 resultados = []
 # 1. Carrega bacias já processadas, se o arquivo existir
 if os.path.exists(caminho_csv):
@@ -214,15 +215,18 @@ if os.path.exists(caminho_csv):
 
     print(f"🔁 {len(bacias_processadas)} bacias já processadas.")
 else:
-    # Se não existir, inicializa lista vazia e cria o CSV com cabeçalho
+    # Se não existir, inicializa lista vazia e cria os CSVs com cabeçalho
     bacias_processadas = set()
-    colunas = [
+    pd.DataFrame(columns=[
         'bacia',
         'acc_naturais', 'l1_naturais', 'l2_naturais', 'l3_naturais',
         'acc_antropicas', 'l1_antropicas', 'l2_antropicas', 'l3_antropicas'
-    ]
-    pd.DataFrame(columns=colunas).to_csv(caminho_csv, index=False)
-    print("📄 Arquivo CSV criado com cabeçalho.")
+    ]).to_csv(caminho_csv, index=False)
+    pd.DataFrame(columns=[
+        'bacia', 'l1_naturais', 'l2_naturais', 'l3_naturais',
+        'l1_antropicas', 'l2_antropicas', 'l3_antropicas'
+    ]).to_csv(caminho_limiares, index=False)
+    print("📄 Arquivos CSV criados com cabeçalho.")
 
 
 
@@ -265,6 +269,18 @@ for cc, idbacia in enumerate(listaNameBacias[:]):
 
         df_linha = pd.DataFrame([linha])
         df_linha.to_csv(caminho_csv, mode='a', header=False, index=False)
+
+        # Salva também no CSV de limiares (consumido por filtersFrequency_step4B.py)
+        linha_lim = {
+            'bacia':          res['bacia'],
+            'l1_naturais':    res['naturais']['l1'],
+            'l2_naturais':    res['naturais']['l2'],
+            'l3_naturais':    res['naturais']['l3'],
+            'l1_antropicas':  res['antropicas']['l1'],
+            'l2_antropicas':  res['antropicas']['l2'],
+            'l3_antropicas':  res['antropicas']['l3'],
+        }
+        pd.DataFrame([linha_lim]).to_csv(caminho_limiares, mode='a', header=False, index=False)
 
         print(f"✅ Bacia {idbacia} processada e salva.")
 

@@ -690,7 +690,7 @@ num_class = 10
 listBacFalta = []
 knowMapSaved = False
 show_interval = True
-for cc, idbacia in enumerate(listaNameBacias[1:]):   
+for cc, idbacia in enumerate(listaNameBacias[:1]):   
     if knowMapSaved:
         try:
             nameMap = f"filterTP_BACIA_{idbacia}_GTB_J{janela}_V{version}_{num_class}cc"
