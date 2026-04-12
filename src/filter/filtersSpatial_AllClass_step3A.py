@@ -109,7 +109,7 @@ def apply_spatialFilterConn(name_bacia):
 
     class_output = ee.Image.cat(band_images)
 
-    nameExp = f"filterSP_BACIA_{name_bacia}_GTB_V{param['versionOut']}"
+    nameExp = f"filterSP_BACIA_{name_bacia}_GTB_V{param['versionOut']}_{param['num_classes']}cc"
     class_output = (class_output
                     .updateMask(bacia_raster)
                     .select(lst_bands_years)
@@ -181,13 +181,13 @@ listaNameBacias = [
     '7741', '7422', '76116', '7761', '7671', '7615', '7411',
     '7764', '757', '771', '766', '7746', '753', '764',
     '7541', '7721', '772', '7619', '7443', '7544', '7438',
-    '763', '7591', '7592', '746', '7712', '7622', '765',
+    '763', '7591', '7592', '746', '7712', '7622', '765'
 ]
 # listaNameBacias = ["7613", "7746", "7741", "7591", "7581", "757"]
 
-changeAcount  = True
+changeAcount  = False
 knowMapSaved  = False
-cont          = 0
+cont          = 49
 
 if changeAcount:
     cont = gerenciador(cont)

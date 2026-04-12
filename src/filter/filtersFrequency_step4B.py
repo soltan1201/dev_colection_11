@@ -124,7 +124,7 @@ class processo_filterFrequence(object):
         'antropicas': [19,21,25,29,36],  # pastagem/agricultura, área urbanizada, afloramento rochoso
         'janela_input': 5,
         'versionInput': 1,
-        'num_classes':  10,   # 7, 10
+        'num_classes':  7,   # 7, 10
         'last_year':    2025,
         'first_year':   1985,
     }
@@ -354,15 +354,13 @@ def gerenciador(cont):
 # LISTA DE BACIAS (col11 — 49 bacias)
 # ===========================================================================
 listaNameBacias = [
-    # '7691', '7754', '7581', '7625', '7584', '751',  '7614',
-    # '7616', '745',  '7424', '773',  '7612', '7613',
-    # '7618', '7561', '755',  '7617', '7564', '761111', '761112',
-    # '7741', '7422', '76116','7761', '7671', '7615', '7411',
-    # '7764', '757',  '771',  '766',  '7746', '753',  '764',
-    # '7541', '7721', '772',  '7619', '7443', '7544', '7438',
-    # '763',  '7591', '7592', '746',  '7712', '7622', 
-    # '765',
-    '752',
+    '765', '7544', '7541',  '746', '7591', '7592', '7411',
+    '761111', '761112', '7612', '7613', '7614', '7615', 
+    '771', '7712', '772', '7721', '773', '7741', '7746', '7754', 
+    '7761', '7764',   '7691', '7581', '7625', '7584', '751',     
+    '7616', '745', '7424', '7618', '7561', '755', '7617', 
+    '7564', '7422', '76116', '7671', '757', '766', '753', '764',
+    '7619', '7443', '7438', '763', '7622', '752'
 ]
 
 # ===========================================================================
@@ -372,33 +370,39 @@ listaNameBacias = [
 pos_inicio = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 pos_fim    = int(sys.argv[2]) if len(sys.argv) > 2 else len(listaNameBacias)
 
-# Carrega limiares ótimos do CSV (gerado pelo notebook)
 dict_limiares = _carregar_limiares_csv(CSV_LIMIARES_PATH)
 
-# Asset de saída para verificação de mapas já salvos
-input_asset  = options_check = processo_filterFrequence.options['output_asset']
-version      = 5
-knowMapSaved = False
-listBacFalta = []
+output_asset = processo_filterFrequence.options['output_asset']
+versoutput   = 1   # deve coincidir com self.versoutput da classe
+num_classes  = processo_filterFrequence.options['num_classes']
 
-for cc, idbacia in enumerate(listaNameBacias[pos_inicio:pos_fim]):
-    if knowMapSaved:
-        try:
-            imgtmp = (ee.ImageCollection(input_asset)
-                        .filter(ee.Filter.eq('id_bacias', idbacia))   # [BUGFIX] id_bacias correto
-                        .filter(ee.Filter.eq('version', version)))
-            idx   = imgtmp.first().get('system:index').getInfo()
-            nbnd  = len(imgtmp.first().bandNames().getInfo())
-            print(f" {cc} [OK] {idx} | {nbnd} bandas")
-        except:
-            listBacFalta.append(idbacia)
-    else:
-        print()
-        print(f"--------- #{cc} PROCESSANDO BACIA {idbacia} ---------")
-        # cont = gerenciador(cont)
-        proc = processo_filterFrequence(idbacia, dict_limiares=dict_limiares)
-        proc.applyStabilityNaturalClass_byYear()
+# --- 1. Verifica quais bacias já foram exportadas ---
+print("\n[INFO] Verificando bacias já processadas no asset...")
+bacias_ok    = set()
+bacias_falta = []
 
-if knowMapSaved:
-    print("Bacias faltando:\n", listBacFalta)
-    print("Total:", len(listBacFalta))
+for idbacia in listaNameBacias[pos_inicio:pos_fim]:
+    try:
+        col = (ee.ImageCollection(output_asset)
+                 .filter(ee.Filter.eq('id_bacias',  idbacia))
+                 .filter(ee.Filter.eq('version',    versoutput))
+                 .filter(ee.Filter.eq('num_class',  num_classes)))
+        if col.size().getInfo() > 0:
+            bacias_ok.add(idbacia)
+            print(f"  [OK]    bacia {idbacia}")
+        else:
+            bacias_falta.append(idbacia)
+            print(f"  [FALTA] bacia {idbacia}")
+    except Exception as exc:
+        bacias_falta.append(idbacia)
+        print(f"  [ERRO]  bacia {idbacia}: {exc}")
+
+print(f"\n[RESUMO] {len(bacias_ok)} já processadas | {len(bacias_falta)} a processar\n")
+
+# --- 2. Processa apenas as bacias que faltam ---
+for cc, idbacia in enumerate(bacias_falta):
+    print(f"--------- #{cc + 1}/{len(bacias_falta)} PROCESSANDO BACIA {idbacia} ---------")
+    proc = processo_filterFrequence(idbacia, dict_limiares=dict_limiares)
+    proc.applyStabilityNaturalClass_byYear()
+
+print("\n[FIM] Todas as bacias pendentes foram submetidas.")
