@@ -180,9 +180,9 @@ classMapB = [
 ]
 
 classNew_10 = [
-    27,  3,  4,  3,  3,  3, 12, 12, 12, 21, 21, 21, 21, 21, 25,
-    25, 25, 25, 33, 29, 25, 33, 12, 33, 21, 33, 33, 21, 21, 21,
-    21, 21, 21, 21, 21, 21, 21,  4, 12, 21, 25
+    27,  3,  4,  3,  3,  3, 12, 12, 12, 15, 19, 19, 19, 21, 25,
+    25, 25, 25, 33, 29, 25, 33, 12, 33, 19, 33, 33, 19, 19, 19,
+    36, 36, 36, 36, 36, 36, 36,  4, 12, 36, 25
 ]
 
 classNew_7  = [
@@ -192,8 +192,10 @@ classNew_7  = [
 ]
 
 classNew  = classNew_10 if args.num_class == 10 else classNew_7
-lsClasses = [3, 4, 12, 21, 25, 27, 29, 33] if args.num_class == 10 else [3, 4, 12, 21, 25, 27, 33]
-
+# classes esperadas na saída (documentação — não filtra o cálculo)
+# num_class=10: {3,4,12,15,19,21,25,27,29,33,36} — requer fonte com esses códigos de entrada
+# num_class=7 : {3,4,12,21,25,27,33}             — funciona mesmo com filtros de 7 classes
+lsClasses = [3, 4, 12, 15, 19, 21, 25, 27, 29, 33, 36] if args.num_class == 10 else [3, 4, 12, 21, 25, 27, 33]
 # ---------------------------------------------------------------------------
 # Flags e asset derivados dos argumentos
 # ---------------------------------------------------------------------------
@@ -342,6 +344,17 @@ if isImgCol:
     if isFilter and args.filtro in ('temporalN', 'temporalA'):
         imgsMaps = imgsMaps.filter(ee.Filter.eq('janela', args.janela))
         print(f"filtrado por janela={args.janela}, size =", imgsMaps.size().getInfo())
+
+    # diagnóstico: mostra quais classes existem no asset para o primeiro ano
+    # útil para verificar se --num_class 10 é compatível com o asset (requer códigos 15,19,36 na entrada)
+    _first_img   = imgsMaps.first()
+    _first_band  = 'classification_' + str(param['year_inic'])
+    _hist_classes = (_first_img.select(_first_band)
+                     .reduceRegion(ee.Reducer.frequencyHistogram(),
+                                   scale=500, bestEffort=True, maxPixels=1e9)
+                     .getInfo())
+    print(f"🔍 classes no asset (band {_first_band}): {_hist_classes}")
+    print("   → num_class=10 requer entrada com códigos {15,18,19,36,42-48,62} para produzir {15,19,36} na saída")
 
     if knowImgcolg:
         print(f"versions quantity = {imgsMaps.aggregate_histogram('version').getInfo()}")

@@ -100,3 +100,43 @@ doc do factsheet geral
 
  Mapa antropico por decada 
  https://code.earthengine.google.com/3ee8e5665d40fd6c69d0f08125163967
+
+
+
+para calculo de áreas
+usage: calculoAreaV3.py [-h] --tipo {filter,class,colecao}
+                        [--filtro {gap_fill,temporalN,temporalA,spatial_int,frequency,spatial_all}]
+                        [--colecao {Map71,Map80,Map90,Map100}] [--version VERSION] [--num_class {7,10}]
+                        [--janela {3,4,5}]
+
+
+ # Filtro spatial_all, versão 10, com 10 classes
+python calculoAreaV3.py --tipo filter --filtro spatial_all --version 10 --num_class 10
+
+# Filtro de frequência, versão 3, com 7 classes
+python calculoAreaV3.py --tipo filter --filtro frequency --version 3 --num_class 7
+
+# Filtro temporal natural, versão 10, janela 5, com 7 classes
+python calculoAreaV3.py --tipo filter --filtro temporalN --version 10 --num_class 7 --janela 5
+
+# Filtro temporal antrópico, versão 8, janela 3, com 10 classes
+python calculoAreaV3.py --tipo filter --filtro temporalA --version 8 --num_class 10 --janela 3
+
+# Classificação direta (assetCol), versão 10, com 10 classes
+python calculoAreaV3.py --tipo class --version 10 --num_class 10
+
+# Coleção anterior Map100, com 7 classes
+python calculoAreaV3.py --tipo colecao --colecao Map100 --num_class 7
+
+# Coleção anterior Map90, com 10 classes
+python calculoAreaV3.py --tipo colecao --colecao Map90 --num_class 10
+Para ver o help completo:
+
+
+python calculoAreaV3.py --help
+O nome do CSV exportado para o Drive reflete automaticamente os argumentos, por exemplo:
+
+
+areaXclasse_CAATINGA_Col11.0_temporalN_J5_nc7_vers_10
+areaXclasse_CAATINGA_Col11.0_spatial_all_nc10_vers_10
+areaXclasse_CAATINGA_Col11.0_Map100_nc7_vers_10_remap

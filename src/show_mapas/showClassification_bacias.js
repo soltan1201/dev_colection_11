@@ -94,10 +94,10 @@ var img_col11_allbands = null;
 
 // ─── Nomes das classes MapBiomas ──────────────────────────────────────────────
 var classNames = {
-    3: 'Floresta', 4: 'Savana', 5: 'Mangue', 9: 'Silvicultura',
-    11: 'Cam. Alagado', 12: 'Campestre', 13: 'Out. F. N-Flor.',
-    15: 'Pastagem', 19: 'Lavoura', 21: 'Mos. Uso', 22: 'Cana',
-    25: 'Urb./Solo Exp.', 29: 'Afloramento', 33: 'Água', 36: 'Perene'
+    3: 'Floresta', 4: 'Savana', 12: 'Campestre', 
+    15: 'Pastagem', 19: 'Lavoura', 21: 'Mos. Uso',
+    25: 'Urb./Solo Exp.', 29: 'Afloramento', 33: 'Água',
+    36: 'Perene'
 };
 
 // ─── Painel do gráfico de série temporal do pixel ────────────────────────────
