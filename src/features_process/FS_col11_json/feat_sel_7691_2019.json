@@ -1,0 +1,20 @@
+{
+    "optimal_number_of_features": 15,
+    "features": [
+        "blue_median",
+        "blue_median_dry",
+        "brightness_median",
+        "brightness_median_wet",
+        "green_median",
+        "green_median_dry",
+        "green_median_wet",
+        "npv_median",
+        "red_median",
+        "red_median_dry",
+        "red_median_wet",
+        "swir1_median",
+        "wetness_median",
+        "wetness_median_dry",
+        "wetness_median_wet"
+    ]
+}
