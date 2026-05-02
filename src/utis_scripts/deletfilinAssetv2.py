@@ -66,17 +66,12 @@ def Get_Remove_Array_from_ImgCol(asset_imgcol, vers= 0, janela= 0, lstBacias= []
 # asset= 'projects/nexgenmap/MapBiomas2/LANDSAT/DEGRADACAO/LAYER_SOIL_EMBED'
 # asset= 'projects/nexgenmap/MapBiomas2/LANDSAT/DEGRADACAO/mosaics-harmonico'
 # asset = 'projects/nexgenmap/SAD_MapBiomas/Caatinga/ndfia_min'
-asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_Savana'
-lsBacias = [
-    '7754', '7691', '7581', '7625', '7584',  '7614', '751',
-    '752', '7616', '745', '7424', '773', '7612', '7613', 
-    '7618', '7561', '755', '7617', '7564', '761111','761112', 
-    '7741', '7422', '76116', '7761', '7671','7615','7411', 
-    '7764', '757', '771','7712','766','7746','753','764', 
-    '7541', '7721', '772', '7619','7443', '765', '7544','7438', 
-    '763', '7591', '7592', '7622', '746'
-]
+# asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_Savana'
+# asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
+# asset = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/POS-CLASS/Gap-fill'
+asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
+lsBacias = []
 
-eliminar_files = True
-# lstyear=[2025], 
+eliminar_files = False
+# lstyear=[2025], lstBacias=lsBacias, 
 Get_Remove_Array_from_ImgCol(asset, play_eliminar= eliminar_files)  

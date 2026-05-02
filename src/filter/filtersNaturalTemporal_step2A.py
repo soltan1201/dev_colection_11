@@ -35,9 +35,7 @@ except:
 class processo_filterTemporal(object):
 
     options = {
-            # 'output_asset': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/POS-CLASS/Frequency',
             'output_asset': "projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/POS-CLASS/TemporalNat",
-            # 'input_asset': 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/POS-CLASS/Spatials',
             'input_asset': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/POS-CLASS/TemporalAnt',
             # 'input_asset': 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/POS-CLASS/Spatials_int',
             'asset_bacias_buffer' : 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/bacias_hidrografica_caatinga_49_regions',  
@@ -55,8 +53,8 @@ class processo_filterTemporal(object):
 
     def __init__(self, name_bacia):
         self.id_bacias = name_bacia
-        self.versoutput = 1
-        self.versionInput = 1
+        self.versoutput = 3
+        self.versionInput = 3
         self.geom_bacia = (ee.FeatureCollection(self.options['asset_bacias_buffer'])
                     .filter(ee.Filter.eq('nunivotto4', name_bacia))
         )

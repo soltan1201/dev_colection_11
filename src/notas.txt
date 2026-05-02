@@ -29,8 +29,8 @@ https://code.earthengine.google.com/7039be27d0ee3c21c798c70d2845ff11
 
 
 sequencias de filtros 
-filter Gap-fil >> Spatial >> Temporal J3 >> TemporalA J3 >> Temporal J4 >> TemporalA J4 
->> Temporal J5 >> TemporalA J5 >> Spatial_int >> Frequency >> Spatial All  
+filter Gap-fil >> Spatial_int >> Temporal Natural J3 >> Temporal Antrópico J3 >> Temporal Natural J4 >> 
+Temporal Antrópico J4 >> Temporal Natural J5 >> Temporal Antrópico J5 >>  Frequency >> Spatial All  
 
 
 
@@ -140,3 +140,28 @@ O nome do CSV exportado para o Drive reflete automaticamente os argumentos, por 
 areaXclasse_CAATINGA_Col11.0_temporalN_J5_nc7_vers_10
 areaXclasse_CAATINGA_Col11.0_spatial_all_nc10_vers_10
 areaXclasse_CAATINGA_Col11.0_Map100_nc7_vers_10_remap
+
+
+tabela de check list :, reunião técnica em Brasilia Abril 2026
+https://docs.google.com/spreadsheets/d/1Eia-Sumt157FioLWsA_V1aPkjt7offfG-xe3J3n_uRA/edit?gid=0#gid=0
+
+
+Arquitetura:
+
+Cada worker chama init_worker(proj_account) via initializer= do Pool — EE é inicializado uma vez por processo, não por chamada
+compute_one(nbacia, nyear) salva um arquivo {nbacia}_{nyear}.json isolado em src/dados/percentis_p01_p99/
+Se o arquivo já existe, retorna "skip" imediatamente (retomada automática após interrupção)
+merge_jsons() ao final agrupa tudo no dict_percentis_p01_p99_bacia_ano.json
+Modos de uso:
+
+
+# Roda com 8 workers (padrão)
+python gerar_percentis_p01_p99_bacia_ano.py
+
+# Roda com 12 workers
+python gerar_percentis_p01_p99_bacia_ano.py 12
+
+# Só faz o merge dos JSONs já existentes
+python gerar_percentis_p01_p99_bacia_ano.py --merge
+python gerar_percentis_p01_p99_bacia_ano.py --merge-clean
+Estimativa de tempo com 8 workers e ~2s por getInfo(): 2009 chamadas / 8 ≈ ~250 chamadas sequenciais por worker → ~8 minutos. Ajuste n_workers conforme a cota GEE da conta.

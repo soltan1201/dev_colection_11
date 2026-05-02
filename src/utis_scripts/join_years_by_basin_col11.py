@@ -56,7 +56,7 @@ nameBacias = [
     '7622'
 ]
 
-VERSION = 1
+VERSION = 3
 
 # Fatia da lista de bacias via argumentos CLI: python script.py pos_inicio pos_fim
 pos_inicio = int(sys.argv[1]) if len(sys.argv) > 1 else 0
@@ -82,8 +82,9 @@ except Exception as ex:
 # CARREGAR A COLEÇÃO DE ENTRADA
 # ============================================================
 
-imgCol = ee.ImageCollection(ASSET_IN)
-
+imgCol = (ee.ImageCollection(ASSET_IN)
+            .filter(ee.Filter.eq('version', VERSION))
+        )
 # ============================================================
 # PROCESSAMENTO POR BACIA
 # ============================================================

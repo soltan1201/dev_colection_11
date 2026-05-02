@@ -43,8 +43,8 @@ param = {
     'janela': 3,
     'step': 1,
     'num_classes': 7,  # 7, 10
-    'versionOut' : 1,
-    'versionInp' : 1,
+    'versionOut' : 2,
+    'versionInp' : 2,
     'numeroTask': 6,
     'numeroLimit': 50,
     'conta' : {
