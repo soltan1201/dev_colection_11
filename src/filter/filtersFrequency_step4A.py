@@ -43,17 +43,17 @@ class processo_filterFrequence(object):
         'classNew':      [3, 4, 3, 3, 12, 12, 15, 19, 19, 19, 21, 25, 25, 25, 25, 33, 29, 25, 33, 12, 33, 36, 19, 19, 19, 36, 36, 36,  4, 12, 19, 25],
         # 'classNew':    [3, 4, 3, 3, 12, 12, 21, 21, 21, 21, 21, 25, 25, 25, 25, 33, 29, 25, 33, 12, 33, 21, 21, 21, 21, 21, 21, 21,  4, 12, 21, 25],
         'classNat':      [1, 1, 1, 1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0],  
-        'versionInput': 1,
+        'versionInput': 2,
         'janela_input': 5,
-        'num_classes': 10,  # 7, 10   
-        'last_year' : 2024,
+        'num_classes': 7,  # 7, 10   
+        'last_year' : 2025,
         'first_year': 1985
     }
 
     def __init__(self, nameBacia):
         self.id_bacias = nameBacia
-        self.versoutput = 1
-        self.versinput = 1
+        self.versoutput = 2
+        self.versionInput = 2
 
         self.step = 1
         self.geom_bacia = ee.FeatureCollection(self.options['asset_bacias_buffer']).filter(

@@ -40,8 +40,8 @@ param = {
     'janela':      5,
     'step':        1,
     'num_classes': 7,   # 7 ou 10
-    'versionOut':  1,
-    'versionInp':  1,
+    'versionOut':  2,
+    'versionInp':  2,
     'min_connect_pixel': 12,  # pixels com menos conexões são substituídos pela moda
     'kernel_radius':     4,   # raio do kernel de moda (janela 9×9 pixels ≈ 270m)
     'numeroTask':  6,

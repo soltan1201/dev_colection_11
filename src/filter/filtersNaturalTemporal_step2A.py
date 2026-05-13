@@ -47,7 +47,7 @@ class processo_filterTemporal(object):
             'first_year': 1985,
             'janela_input' : 4,
             'janela_output' : 5,
-            'num_classes': 7,  # 7, 10
+            'num_classes': 10,  # 7, 10
             'step': 1
         }
 

@@ -26,6 +26,10 @@ Os filtros removem esses artefatos em três domínios:
 | **Espacial** | Pixels isolados ("sal e pimenta") | contagem de pixels conectados + moda da vizinhança |
 | **Frequência** | Oscilação em áreas permanentemente naturais | Frequência acumulada dos 40 anos |
 
+
+sequencias de filtros 
+filter Gap-fil >> Spatial_int >> Temporal Natural J3 >> Temporal Antrópico J3 >> Temporal Natural J4 >> 
+Temporal Antrópico J4 >> Temporal Natural J5 >> Temporal Antrópico J5 >>  Frequency >> Spatial All  
 ---
 
 ## Estrutura de arquivos

@@ -45,16 +45,16 @@ class processo_filterTemporal(object):
             'classNat':  [1, 1, 1, 1, 1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0],      
             'last_year' : 2025,
             'first_year': 1985,
-            'janela_input': 4,
-            'janela_output': 4,
+            'janela_input': 5,
+            'janela_output': 5,
             'num_classes': 10,  # 7, 10
             'step': 1
         }
 
     def __init__(self, name_bacia):
         self.id_bacias = name_bacia
-        self.versoutput = 2
-        self.versionInput = 2
+        self.versoutput = 3
+        self.versionInput = 3
         self.geom_bacia = (ee.FeatureCollection(self.options['asset_bacias_buffer'])
                     .filter(ee.Filter.eq('nunivotto4', name_bacia))
         )

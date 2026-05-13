@@ -70,9 +70,11 @@ def Get_Remove_Array_from_ImgCol(asset_imgcol, vers= 0, janela= 0, lstBacias= []
 # asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
 # asset = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/POS-CLASS/Gap-fill'
 # asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/Classifier/Classify_fromEEMV1'
-asset = 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/POS-CLASS/Spatial'
+# asset = 'projects/mapbiomas-workspace/AMOSTRAS/col9/CAATINGA/POS-CLASS/Spatial'
+# asset = 'projects/mapbiomas-workspace/AMOSTRAS/col10/CAATINGA/POS-CLASS/MergerV6'
+asset = 'projects/mapbiomas-workspace/AMOSTRAS/col11/CAATINGA/POS-CLASS/Frequency'
 lsBacias = []
 
-eliminar_files = True
+eliminar_files = False
 # lstyear=[2025], lstBacias=lsBacias, 
-Get_Remove_Array_from_ImgCol(asset, play_eliminar= eliminar_files)  
+Get_Remove_Array_from_ImgCol(asset, vers= 3, play_eliminar= eliminar_files)  
